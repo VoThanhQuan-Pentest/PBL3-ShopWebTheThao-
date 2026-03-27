@@ -36,8 +36,22 @@
                 <a href=""><i class="fa-solid fa-cart-shopping"></i></a>
                 <span class="item-count text-10 text-bold lh-1">0</span>
             </div>
-            <div id="account">
-                <a href=""><i class="fa-solid fa-user"></i></a>
+            <div id="account" class="relative">
+                <a href="#" id="account-icon"><i class="fa-solid fa-user"></i></a>
+                <!-- User Dropdown Menu -->
+                <div id="user-dropdown" class="user-dropdown hidden">
+                    <div class="dropdown-header">
+                        <p id="dropdown-user-name" class="text-16 text-bold">Khách</p>
+                        <p id="dropdown-user-role" class="text-12 color-gray">Vai trò</p>
+                    </div>
+                    <ul class="dropdown-list">
+                        <li><a href="#" id="edit-profile-link"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa thông tin</a></li>
+                        <li><a href="#" id="change-pass-link"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a></li>
+                        <li id="admin-link" class="hidden"><a href="#"><i class="fa-solid fa-gauge"></i> Trang quản lý</a></li>
+                        <li><hr></li>
+                        <li><a href="#" id="logout-link" class="color-red"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
             </div>
             <div id="wishlist">
                 <a href=""><i class="fa-solid fa-heart"></i></a>
@@ -50,6 +64,51 @@
     </div>
     <div id="banner">
         <img src="./assets/images/banner.png" alt="banner">
+    </div>
+
+    <!-- Management Section (Hidden by default) -->
+    <div id="admin-panel" class="hidden">
+        <div class="admin-container">
+            <h2 class="text-24 text-bold">Bảng Điều Khiển Quản Lý</h2>
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="products-mgmt">Quản Lý Sản Phẩm</button>
+                <button class="tab-btn" id="users-tab-btn" data-tab="users-mgmt">Quản Lý Người Dùng</button>
+            </div>
+            
+            <div id="products-mgmt" class="tab-content active">
+                <div class="action-bar">
+                    <button class="add-btn"><i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Danh mục</th>
+                            <th>Giá bán</th>
+                            <th>Tồn kho</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-product-list"></tbody>
+                </table>
+            </div>
+
+            <div id="users-mgmt" class="tab-content">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Họ tên</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Quyền hạn</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-user-list"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div id="main-content">
@@ -97,6 +156,69 @@
         <div id="footer_divider"></div>
         <p id="copyright" class="text-14">&copy; 2026 Flare Fitness. All rights reserved.</p>
     </div>
+    <!-- Login Modal -->
+    <div id="login-overlay" class="overlay hidden">
+        <div class="login-modal">
+            <button id="close-login" class="close-btn">&times;</button>
+            <h2 class="text-24 text-bold">Đăng nhập</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username" class="text-14">Tên đăng nhập</label>
+                    <input type="text" id="username" required placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="text-14">Mật khẩu</label>
+                    <input type="password" id="password" required placeholder="admin123">
+                </div>
+                <p id="login-error" class="error-msg hidden">Sai tên đăng nhập hoặc mật khẩu!</p>
+                <button type="submit" class="login-submit-btn text-bold">Đăng nhập</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="profile-overlay" class="overlay hidden">
+        <div class="login-modal">
+            <button id="close-profile" class="close-btn">&times;</button>
+            <h2 class="text-24 text-bold">Chỉnh sửa thông tin</h2>
+            <form id="profile-form">
+                <div class="form-group">
+                    <label class="text-14">Họ tên</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="text-14">Email</label>
+                    <input type="email" id="edit-email" required>
+                </div>
+                <div class="form-group">
+                    <label class="text-14">Số điện thoại</label>
+                    <input type="text" id="edit-phone" placeholder="Cập nhật từ bảng Customer...">
+                </div>
+                <button type="submit" class="login-submit-btn text-bold">Lưu thay đổi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="password-overlay" class="overlay hidden">
+        <div class="login-modal">
+            <button id="close-password" class="close-btn">&times;</button>
+            <h2 class="text-24 text-bold">Đổi mật khẩu</h2>
+            <form id="password-form">
+                <div class="form-group">
+                    <label class="text-14">Mật khẩu mới</label>
+                    <input type="password" id="new-password" required>
+                </div>
+                <div class="form-group">
+                    <label class="text-14">Xác nhận mật khẩu</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <p id="pass-error" class="error-msg hidden">Mật khẩu không khớp!</p>
+                <button type="submit" class="login-submit-btn text-bold">Cập nhật mật khẩu</button>
+            </form>
+        </div>
+    </div>
+
     <script src="./assets/main.js"></script>
 </body>
 </html>
