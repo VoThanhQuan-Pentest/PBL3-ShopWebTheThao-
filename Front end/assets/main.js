@@ -1,29 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
     const productContainer = document.getElementById('product-container');
+    const navLinks = document.querySelectorAll('#nav a');
+    let allProducts = [];
 
-    // Giả lập fetch dữ liệu từ Data/products.json
-    // Lưu ý: Cần chạy Live Server để fetch() hoạt động
+    // Load dữ liệu ban đầu
     fetch('../../Data/products.json')
         .then(response => {
             if (!response.ok) throw new Error('Không thể tải dữ liệu sản phẩm');
             return response.json();
         })
         .then(products => {
-            renderProducts(products);
+            allProducts = products;
+            renderProducts(allProducts);
         })
         .catch(error => {
             console.error(error);
             productContainer.innerHTML = `<p class="error-text">Lỗi: ${error.message}. Vui lòng chạy dự án bằng Live Server.</p>`;
         });
 
+    // Xử lý sự kiện click trên Menu để lọc
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const category = link.getAttribute('data-category');
+            
+            // Lọc sản phẩm
+            const filteredProducts = category === 'all' 
+                ? allProducts 
+                : allProducts.filter(p => p.danh_muc === category);
+            
+            // Cập nhật tiêu đề section
+            const sectionTitle = document.querySelector('.section-title');
+            sectionTitle.textContent = category === 'all' ? 'Tất cả sản phẩm' : `Sản phẩm môn: ${category}`;
+            
+            renderProducts(filteredProducts);
+        });
+    });
+
     function renderProducts(products) {
+        if (products.length === 0) {
+            productContainer.innerHTML = '<p class="loading-text">Không tìm thấy sản phẩm nào trong mục này.</p>';
+            return;
+        }
+
         productContainer.innerHTML = '';
-        
         products.forEach(product => {
             const productCard = document.createElement('div');
             productCard.className = 'product-card';
             
-            // Format giá tiền VND
             const formattedPrice = new Intl.NumberFormat('vi-VN', {
                 style: 'decimal'
             }).format(product.gia_ban) + 'đ';
