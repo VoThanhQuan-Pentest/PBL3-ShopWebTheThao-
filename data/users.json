@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "admin123",
+    "role": "Quản trị viên",
+    "ho_ten": "Hệ Thống",
+    "email": "admin@flarefitness.com"
+  },
+  {
+    "id": 2,
+    "username": "nhanvien01",
+    "password": "password123",
+    "role": "Nhân viên",
+    "ho_ten": "Nguyễn Nhân Viên",
+    "email": "nv01@flarefitness.com"
+  },
+  {
+    "id": 3,
+    "username": "khachhang01",
+    "password": "user123",
+    "role": "Khách hàng",
+    "ho_ten": "Nguyễn Văn A",
+    "email": "nguyenvana@email.com"
+  }
+]

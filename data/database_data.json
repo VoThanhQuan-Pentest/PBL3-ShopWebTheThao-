@@ -1,0 +1,143 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "ten_san_pham": "Giày thể thao nam",
+      "sku": "GTN-001",
+      "danh_muc": "Giày",
+      "thuong_hieu": "Nike",
+      "size": "42",
+      "mau": "Đen",
+      "gia_nhap": 350000,
+      "gia_ban": 599000,
+      "ton_kho": 15,
+      "trang_thai": "Đang bán",
+      "link_san_pham": "https://example.com/giay-the-thao-nam",
+      "ghi_chu": "Hàng mới về",
+      "ngay_tao": "2025-03-01"
+    },
+    {
+      "id": 2,
+      "ten_san_pham": "Áo thun cổ tròn",
+      "sku": "AT-002",
+      "danh_muc": "Áo",
+      "thuong_hieu": "Adidas",
+      "size": "L",
+      "mau": "Trắng",
+      "gia_nhap": 120000,
+      "gia_ban": 199000,
+      "ton_kho": 30,
+      "trang_thai": "Đang bán",
+      "link_san_pham": "https://example.com/ao-thun-co-tron",
+      "ghi_chu": "",
+      "ngay_tao": "2025-03-05"
+    },
+    {
+      "id": 3,
+      "ten_san_pham": "Quần jean rách",
+      "sku": "QJ-003",
+      "danh_muc": "Quần",
+      "thuong_hieu": "Levi's",
+      "size": "32",
+      "mau": "Xanh",
+      "gia_nhap": 280000,
+      "gia_ban": 450000,
+      "ton_kho": 8,
+      "trang_thai": "Sắp về",
+      "link_san_pham": "https://example.com/quan-jean-rach",
+      "ghi_chu": "Sắp có hàng mới",
+      "ngay_tao": "2025-03-10"
+    },
+    {
+      "id": 4,
+      "ten_san_pham": "Mũ lưỡi trai",
+      "sku": "PK-004",
+      "danh_muc": "Phụ kiện",
+      "thuong_hieu": "Puma",
+      "size": "Free",
+      "mau": "Đỏ",
+      "gia_nhap": 80000,
+      "gia_ban": 149000,
+      "ton_kho": 25,
+      "trang_thai": "Đang bán",
+      "link_san_pham": "https://example.com/mu-luoi-trai",
+      "ghi_chu": "",
+      "ngay_tao": "2025-03-12"
+    }
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "ten_khach": "Nguyễn Văn A",
+      "sdt": "0901234567",
+      "email": "nguyenvana@email.com",
+      "kenh": "Facebook",
+      "nhan": "VIP",
+      "dia_chi": "123 Đường Lê Lợi, Quận 1, TP.HCM",
+      "ghi_chu": "Khách hàng thân thiết",
+      "ngay_tao": "2025-02-10"
+    },
+    {
+      "id": 2,
+      "ten_khach": "Trần Thị B",
+      "sdt": "0987654321",
+      "email": "tranthib@email.com",
+      "kenh": "Shopee",
+      "nhan": "Mới",
+      "dia_chi": "456 Đường Nguyễn Huệ, Quận 2, TP.HCM",
+      "ghi_chu": "",
+      "ngay_tao": "2025-03-15"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "ma_don": "DH-001",
+      "ngay_dat": "2025-03-20",
+      "trang_thai_don": "Hoàn tất",
+      "thanh_toan": "Chuyển khoản",
+      "da_thanh_toan": true,
+      "tong_tien": 848000,
+      "phi_ship": 30000,
+      "giam_gia": 50000,
+      "dia_chi_giao": "123 Đường Lê Lợi, Quận 1, TP.HCM",
+      "ghi_chu": "Giao giờ hành chính",
+      "ngay_tao": "2025-03-20",
+      "customer_id": 1,
+      "items": [
+        {
+          "product_id": 1,
+          "so_luong": 1,
+          "gia_ban": 599000
+        },
+        {
+          "product_id": 4,
+          "so_luong": 2,
+          "gia_ban": 149000
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "ma_don": "DH-002",
+      "ngay_dat": "2025-03-22",
+      "trang_thai_don": "Đang giao",
+      "thanh_toan": "COD",
+      "da_thanh_toan": false,
+      "tong_tien": 199000,
+      "phi_ship": 20000,
+      "giam_gia": 0,
+      "dia_chi_giao": "456 Đường Nguyễn Huệ, Quận 2, TP.HCM",
+      "ghi_chu": "Gọi trước khi giao",
+      "ngay_tao": "2025-03-22",
+      "customer_id": 2,
+      "items": [
+        {
+          "product_id": 2,
+          "so_luong": 1,
+          "gia_ban": 199000
+        }
+      ]
+    }
+  ]
+}

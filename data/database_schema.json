@@ -1,0 +1,519 @@
+{
+  "database": {
+    "name": "ProductManagement",
+    "description": "Hệ thống quản lý sản phẩm, khách hàng và đơn hàng",
+    "created_at": "2026-03-27",
+    "tables": [
+      {
+        "id": "tbl_san_pham",
+        "name": "Sản phẩm",
+        "description": "Bảng quản lý sản phẩm",
+        "columns": [
+          {
+            "name": "ID",
+            "type": "uuid",
+            "primary_key": true,
+            "auto_generate": true
+          },
+          {
+            "name": "Tên sản phẩm",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "SKU",
+            "type": "text",
+            "required": true,
+            "unique": true
+          },
+          {
+            "name": "Danh mục",
+            "type": "select",
+            "required": true,
+            "options": ["Giày", "Áo", "Quần", "Phụ kiện", "Dụng cụ"]
+          },
+          {
+            "name": "Thương hiệu",
+            "type": "text",
+            "required": false
+          },
+          {
+            "name": "Size",
+            "type": "text",
+            "required": false
+          },
+          {
+            "name": "Màu",
+            "type": "text",
+            "required": false
+          },
+          {
+            "name": "Giá nhập",
+            "type": "number",
+            "format": "currency_vnd",
+            "required": true,
+            "min": 0
+          },
+          {
+            "name": "Giá bán",
+            "type": "number",
+            "format": "currency_vnd",
+            "required": true,
+            "min": 0
+          },
+          {
+            "name": "Tồn kho",
+            "type": "integer",
+            "required": true,
+            "default": 0,
+            "min": 0
+          },
+          {
+            "name": "Trạng thái",
+            "type": "select",
+            "required": true,
+            "default": "Nháp",
+            "options": ["Nháp", "Đang bán", "Sắp về", "Ngừng bán"]
+          },
+          {
+            "name": "Link sản phẩm",
+            "type": "url",
+            "required": false
+          },
+          {
+            "name": "Ghi chú",
+            "type": "text",
+            "required": false,
+            "multiline": true
+          },
+          {
+            "name": "Ngày tạo",
+            "type": "datetime",
+            "required": true,
+            "auto_generate": true,
+            "default": "now()"
+          }
+        ],
+        "relations": [
+          {
+            "name": "Đơn hàng",
+            "target_table": "tbl_don_hang",
+            "type": "many_to_many",
+            "description": "Sản phẩm có thể xuất hiện trong nhiều đơn hàng"
+          }
+        ]
+      },
+      {
+        "id": "tbl_khach_hang",
+        "name": "Khách hàng",
+        "description": "Bảng quản lý khách hàng",
+        "columns": [
+          {
+            "name": "ID",
+            "type": "uuid",
+            "primary_key": true,
+            "auto_generate": true
+          },
+          {
+            "name": "Tên khách",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "SĐT",
+            "type": "phone",
+            "required": true
+          },
+          {
+            "name": "Email",
+            "type": "email",
+            "required": false
+          },
+          {
+            "name": "Kênh",
+            "type": "select",
+            "required": false,
+            "options": ["Facebook", "Shopee", "Website", "Zalo", "Khác"]
+          },
+          {
+            "name": "Nhãn",
+            "type": "multi_select",
+            "required": false,
+            "options": ["VIP", "Mới", "Quay lại"]
+          },
+          {
+            "name": "Địa chỉ",
+            "type": "text",
+            "required": false,
+            "multiline": true
+          },
+          {
+            "name": "Ghi chú",
+            "type": "text",
+            "required": false,
+            "multiline": true
+          },
+          {
+            "name": "Ngày tạo",
+            "type": "datetime",
+            "required": true,
+            "auto_generate": true,
+            "default": "now()"
+          }
+        ],
+        "relations": [
+          {
+            "name": "Đơn hàng",
+            "target_table": "tbl_don_hang",
+            "type": "one_to_many",
+            "foreign_key": "customer_id",
+            "description": "Một khách hàng có thể có nhiều đơn hàng"
+          }
+        ]
+      },
+      {
+        "id": "tbl_don_hang",
+        "name": "Đơn hàng",
+        "description": "Bảng quản lý đơn hàng",
+        "columns": [
+          {
+            "name": "ID",
+            "type": "uuid",
+            "primary_key": true,
+            "auto_generate": true
+          },
+          {
+            "name": "Mã đơn",
+            "type": "text",
+            "required": true,
+            "unique": true,
+            "auto_generate": true,
+            "format": "DH-YYYYMMDD-XXXX"
+          },
+          {
+            "name": "Ngày đặt",
+            "type": "date",
+            "required": true,
+            "default": "now()"
+          },
+          {
+            "name": "customer_id",
+            "type": "uuid",
+            "required": true,
+            "foreign_key": true,
+            "references": {
+              "table": "tbl_khach_hang",
+              "column": "ID"
+            }
+          },
+          {
+            "name": "Trạng thái đơn",
+            "type": "select",
+            "required": true,
+            "default": "Chờ xác nhận",
+            "options": [
+              "Chờ xác nhận",
+              "Đang chuẩn bị",
+              "Đang giao",
+              "Hoàn tất",
+              "Hủy"
+            ]
+          },
+          {
+            "name": "Thanh toán",
+            "type": "select",
+            "required": true,
+            "options": ["COD", "Chuyển khoản", "Ví điện tử"]
+          },
+          {
+            "name": "Đã thanh toán",
+            "type": "boolean",
+            "required": true,
+            "default": false
+          },
+          {
+            "name": "Tổng tiền",
+            "type": "number",
+            "format": "currency_vnd",
+            "required": true,
+            "min": 0
+          },
+          {
+            "name": "Phí ship",
+            "type": "number",
+            "format": "currency_vnd",
+            "required": false,
+            "default": 0,
+            "min": 0
+          },
+          {
+            "name": "Giảm giá",
+            "type": "number",
+            "format": "currency_vnd",
+            "required": false,
+            "default": 0,
+            "min": 0
+          },
+          {
+            "name": "Địa chỉ giao",
+            "type": "text",
+            "required": true,
+            "multiline": true
+          },
+          {
+            "name": "Ghi chú",
+            "type": "text",
+            "required": false,
+            "multiline": true
+          },
+          {
+            "name": "Ngày tạo",
+            "type": "datetime",
+            "required": true,
+            "auto_generate": true,
+            "default": "now()"
+          }
+        ],
+        "relations": [
+          {
+            "name": "Khách hàng",
+            "target_table": "tbl_khach_hang",
+            "local_key": "customer_id",
+            "type": "many_to_one"
+          },
+          {
+            "name": "Chi tiết đơn hàng (Items)",
+            "target_table": "tbl_san_pham",
+            "type": "many_to_many",
+            "junction_logic": "Một mảng items chứa product_id tham chiếu tới tbl_san_pham.id"
+          }
+        ]
+      },
+      {
+        "id": "tbl_nguoi_dung",
+        "name": "Người dùng",
+        "description": "Bảng quản lý tài khoản truy cập hệ thống",
+        "columns": [
+          {
+            "name": "ID",
+            "type": "uuid",
+            "primary_key": true,
+            "auto_generate": true
+          },
+          {
+            "name": "Username",
+            "type": "text",
+            "required": true,
+            "unique": true
+          },
+          {
+            "name": "Password",
+            "type": "password",
+            "required": true
+          },
+          {
+            "name": "Role",
+            "type": "select",
+            "required": true,
+            "options": ["Quản trị viên", "Nhân viên", "Khách hàng"]
+          },
+          {
+            "name": "Họ tên",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "Email",
+            "type": "email",
+            "required": false
+          },
+          {
+            "name": "Ngày tạo",
+            "type": "datetime",
+            "required": true,
+            "auto_generate": true,
+            "default": "now()"
+          }
+        ]
+      }
+    ],
+    "views": [
+      {
+        "id": "view_bang_san_pham",
+        "name": "Bảng Sản phẩm",
+        "type": "table",
+        "source_table": "tbl_san_pham",
+        "description": "Hiển thị danh sách sản phẩm dạng bảng",
+        "visible_columns": [
+          "Tên sản phẩm",
+          "SKU",
+          "Danh mục",
+          "Thương hiệu",
+          "Size",
+          "Màu",
+          "Giá nhập",
+          "Giá bán",
+          "Tồn kho",
+          "Trạng thái",
+          "Link sản phẩm",
+          "Ghi chú",
+          "Ngày tạo"
+        ],
+        "sort": [
+          {
+            "column": "Ngày tạo",
+            "direction": "descending"
+          }
+        ]
+      },
+      {
+        "id": "view_board_trang_thai_san_pham",
+        "name": "Board theo trạng thái sản phẩm",
+        "type": "board",
+        "source_table": "tbl_san_pham",
+        "description": "Hiển thị sản phẩm dạng Kanban board theo cột Trạng thái",
+        "group_by": "Trạng thái",
+        "groups": [
+          {
+            "name": "Nháp",
+            "color": "gray"
+          },
+          {
+            "name": "Đang bán",
+            "color": "green"
+          },
+          {
+            "name": "Sắp về",
+            "color": "yellow"
+          },
+          {
+            "name": "Ngừng bán",
+            "color": "red"
+          }
+        ],
+        "card_preview_columns": [
+          "Tên sản phẩm",
+          "SKU",
+          "Giá bán",
+          "Tồn kho"
+        ]
+      },
+      {
+        "id": "view_bang_khach_hang",
+        "name": "Bảng Khách hàng",
+        "type": "table",
+        "source_table": "tbl_khach_hang",
+        "description": "Hiển thị danh sách khách hàng dạng bảng",
+        "visible_columns": [
+          "Tên khách",
+          "SĐT",
+          "Email",
+          "Kênh",
+          "Nhãn",
+          "Địa chỉ",
+          "Ghi chú",
+          "Ngày tạo"
+        ],
+        "sort": [
+          {
+            "column": "Ngày tạo",
+            "direction": "descending"
+          }
+        ]
+      },
+      {
+        "id": "view_bang_don_hang",
+        "name": "Bảng Đơn hàng",
+        "type": "table",
+        "source_table": "tbl_don_hang",
+        "description": "Hiển thị danh sách đơn hàng dạng bảng",
+        "visible_columns": [
+          "Mã đơn",
+          "Ngày đặt",
+          "Khách hàng",
+          "Trạng thái đơn",
+          "Thanh toán",
+          "Đã thanh toán",
+          "Tổng tiền",
+          "Phí ship",
+          "Giảm giá",
+          "Địa chỉ giao",
+          "Sản phẩm",
+          "Ghi chú",
+          "Ngày tạo"
+        ],
+        "sort": [
+          {
+            "column": "Ngày đặt",
+            "direction": "descending"
+          }
+        ]
+      },
+      {
+        "id": "view_kanban_don_hang",
+        "name": "Kanban đơn hàng",
+        "type": "board",
+        "source_table": "tbl_don_hang",
+        "description": "Hiển thị đơn hàng dạng Kanban board theo trạng thái đơn",
+        "group_by": "Trạng thái đơn",
+        "groups": [
+          {
+            "name": "Chờ xác nhận",
+            "color": "gray"
+          },
+          {
+            "name": "Đang chuẩn bị",
+            "color": "blue"
+          },
+          {
+            "name": "Đang giao",
+            "color": "yellow"
+          },
+          {
+            "name": "Hoàn tất",
+            "color": "green"
+          },
+          {
+            "name": "Hủy",
+            "color": "red"
+          }
+        ],
+        "card_preview_columns": [
+          "Mã đơn",
+          "Khách hàng",
+          "Tổng tiền",
+          "Thanh toán",
+          "Đã thanh toán"
+        ]
+      },
+      {
+        "id": "view_lich_don_hang",
+        "name": "Lịch đơn hàng",
+        "type": "calendar",
+        "source_table": "tbl_don_hang",
+        "description": "Hiển thị đơn hàng trên lịch theo ngày đặt",
+        "date_column": "Ngày đặt",
+        "card_preview_columns": [
+          "Mã đơn",
+          "Khách hàng",
+          "Trạng thái đơn",
+          "Tổng tiền"
+        ]
+      }
+    ],
+    "relationships_summary": [
+      {
+        "from": "Đơn hàng",
+        "to": "Khách hàng",
+        "type": "many_to_one",
+        "description": "Nhiều đơn hàng thuộc về 1 khách hàng"
+      },
+      {
+        "from": "Đơn hàng",
+        "to": "Sản phẩm",
+        "type": "many_to_many",
+        "description": "Mỗi đơn hàng chứa nhiều sản phẩm, mỗi sản phẩm có thể nằm trong nhiều đơn hàng"
+      }
+    ]
+  }
+}
