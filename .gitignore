@@ -2,3 +2,6 @@
 !.vscode/settings.json
 !.vscode/launch.json
 !.vscode/extensions.json
+tmp_index.html
+tmp_style.css
+tmp_main.js

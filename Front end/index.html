@@ -21,7 +21,7 @@
         <div id="search">
             <div id="search_box">
                 <button class="text-18" title="Tìm kiếm"><i class="fa-solid fa-magnifying-glass"></i></button>
-                <input class="text-16" type="text" placeholder="Tìm sản phẩm...">
+                <input id="search-input" class="text-16" type="text" placeholder="Tìm sản phẩm...">
             </div>
         </div>
         <div id="user_nav">
@@ -29,16 +29,15 @@
                 <i class="fa-regular fa-pen-to-square contact-icon text-24 lh-1"></i>
                 <span class="contact-text lh-11">
                     <span class="contact-label text-13 text-medium">Tư vấn mua hàng</span>
-                    <a class="contact-number text-16 text-bold" href="tel:0823885888">0935250037</a>
+                    <a class="contact-number text-16 text-bold" href="tel:0935250037">0935250037</a>
                 </span>
             </div>
             <div id="cart">
-                <a href=""><i class="fa-solid fa-cart-shopping"></i></a>
-                <span class="item-count text-10 text-bold lh-1">0</span>
+                <a href="#" id="cart-link"><i class="fa-solid fa-cart-shopping"></i></a>
+                <span id="cart-count" class="item-count text-10 text-bold lh-1">0</span>
             </div>
             <div id="account" class="relative">
                 <a href="#" id="account-icon"><i class="fa-solid fa-user"></i></a>
-                <!-- User Dropdown Menu -->
                 <div id="user-dropdown" class="user-dropdown hidden">
                     <div class="dropdown-header">
                         <p id="dropdown-user-name" class="text-16 text-bold">Khách</p>
@@ -47,26 +46,26 @@
                     <ul class="dropdown-list">
                         <li><a href="#" id="edit-profile-link"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa thông tin</a></li>
                         <li><a href="#" id="change-pass-link"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a></li>
-                        <li id="admin-link" class="hidden"><a href="#"><i class="fa-solid fa-gauge"></i> Trang quản lý</a></li>
+                        <li id="admin-link" class="hidden"><a href="#admin-panel"><i class="fa-solid fa-gauge"></i> Trang quản lý</a></li>
                         <li><hr></li>
                         <li><a href="#" id="logout-link" class="color-red"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
                     </ul>
                 </div>
             </div>
             <div id="wishlist">
-                <a href=""><i class="fa-solid fa-heart"></i></a>
+                <a href="#"><i class="fa-solid fa-heart"></i></a>
                 <span class="item-count text-10 text-bold lh-1">0</span>
             </div>
             <div id="language">
-                <a href=""><i class="fa-solid fa-globe"></i></a>
+                <a href="#"><i class="fa-solid fa-globe"></i></a>
             </div>
         </div>
     </div>
+
     <div id="banner">
         <img src="./assets/images/banner.png" alt="banner">
     </div>
 
-    <!-- Management Section (Hidden by default) -->
     <div id="admin-panel" class="hidden">
         <div class="admin-container">
             <h2 class="text-24 text-bold">Bảng Điều Khiển Quản Lý</h2>
@@ -74,10 +73,10 @@
                 <button class="tab-btn active" data-tab="products-mgmt">Quản Lý Sản Phẩm</button>
                 <button class="tab-btn" id="users-tab-btn" data-tab="users-mgmt">Quản Lý Người Dùng</button>
             </div>
-            
+
             <div id="products-mgmt" class="tab-content active">
                 <div class="action-bar">
-                    <button class="add-btn"><i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
+                    <button id="add-product-btn" class="add-btn"><i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
                 </div>
                 <table class="admin-table">
                     <thead>
@@ -101,7 +100,8 @@
                             <th>ID</th>
                             <th>Họ tên</th>
                             <th>Username</th>
-                            <th>Password</th>
+                            <th>Email</th>
+                            <th>SĐT</th>
                             <th>Quyền hạn</th>
                         </tr>
                     </thead>
@@ -114,7 +114,6 @@
     <div id="main-content">
         <h2 class="section-title text-24 text-bold">Sản phẩm nổi bật</h2>
         <div id="product-container" class="product-grid">
-            <!-- Sản phẩm sẽ được render ở đây bằng JS -->
             <p class="loading-text">Đang tải sản phẩm...</p>
         </div>
     </div>
@@ -124,42 +123,42 @@
             <h4 class="text-18">Thông tin chung</h4>
             <p class="text-14">Flare Fitness - Dụng cụ và phụ kiện thể thao</p>
             <p class="text-14"><span class="text-bold">Địa chỉ: </span>123 Đường ABC, Phường XYZ, Thành phố Đà Nẵng</p>
-            <p class="text-14 text-bold">Điện thoại: <a href="">0935250037</a></p>
-            <p class="text-14 text-bold">Email: <a href="">flarefitness@gmail.com</a></p>
+            <p class="text-14 text-bold">Điện thoại: <a href="tel:0935250037">0935250037</a></p>
+            <p class="text-14 text-bold">Email: <a href="mailto:flarefitness@gmail.com">flarefitness@gmail.com</a></p>
         </div>
         <div id="about">
             <h4 class="text-18">Về chúng tôi</h4>
             <ul id="about_list">
-                <li><a href="">Trang chủ</a></li>
-                <li><a href="">Giới thiệu</a></li>
-                <li><a href="">Sản phẩm</a></li>
+                <li><a href="#">Trang chủ</a></li>
+                <li><a href="#">Giới thiệu</a></li>
+                <li><a href="#">Sản phẩm</a></li>
             </ul>
         </div>
         <div id="policies">
             <h4 class="text-18">Chính sách khách hàng</h4>
             <ul id="policies_list">
-                <li><a href="">Chính sách bảo mật</a></li>
-                <li><a href="">Chính sách vận chuyển</a></li>
-                <li><a href="">Chính sách đổi trả</a></li>
-                <li><a href="">Quy định sử dụng</a></li>
+                <li><a href="#">Chính sách bảo mật</a></li>
+                <li><a href="#">Chính sách vận chuyển</a></li>
+                <li><a href="#">Chính sách đổi trả</a></li>
+                <li><a href="#">Quy định sử dụng</a></li>
             </ul>
         </div>
         <div id="social">
             <h4 class="text-18">Kết nối với chúng tôi</h4>
             <div id="social_icons">
-                <a class="social-icon facebook" href=""><i class="fa-brands fa-facebook-f text-16 lh-1"></i></a>
-                <a class="social-icon instagram" href=""><i class="fa-brands fa-instagram text-16 lh-1"></i></a>
-                <a class="social-icon twitter" href=""><i class="fa-brands fa-twitter text-16 lh-1"></i></a>
-                <a class="social-icon youtube" href=""><i class="fa-brands fa-youtube text-16 lh-1"></i></a>
+                <a class="social-icon facebook" href="#"><i class="fa-brands fa-facebook-f text-16 lh-1"></i></a>
+                <a class="social-icon instagram" href="#"><i class="fa-brands fa-instagram text-16 lh-1"></i></a>
+                <a class="social-icon twitter" href="#"><i class="fa-brands fa-twitter text-16 lh-1"></i></a>
+                <a class="social-icon youtube" href="#"><i class="fa-brands fa-youtube text-16 lh-1"></i></a>
             </div>
         </div>
         <div id="footer_divider"></div>
         <p id="copyright" class="text-14">&copy; 2026 Flare Fitness. All rights reserved.</p>
     </div>
-    <!-- Login Modal -->
+
     <div id="login-overlay" class="overlay hidden">
         <div class="login-modal">
-            <button id="close-login" class="close-btn">&times;</button>
+            <button id="close-login" class="close-btn" type="button">&times;</button>
             <h2 class="text-24 text-bold">Đăng nhập</h2>
             <form id="login-form">
                 <div class="form-group">
@@ -176,10 +175,9 @@
         </div>
     </div>
 
-    <!-- Edit Profile Modal -->
     <div id="profile-overlay" class="overlay hidden">
         <div class="login-modal">
-            <button id="close-profile" class="close-btn">&times;</button>
+            <button id="close-profile" class="close-btn" type="button">&times;</button>
             <h2 class="text-24 text-bold">Chỉnh sửa thông tin</h2>
             <form id="profile-form">
                 <div class="form-group">
@@ -192,19 +190,22 @@
                 </div>
                 <div class="form-group">
                     <label class="text-14">Số điện thoại</label>
-                    <input type="text" id="edit-phone" placeholder="Cập nhật từ bảng Customer...">
+                    <input type="text" id="edit-phone" placeholder="Cập nhật số điện thoại...">
                 </div>
                 <button type="submit" class="login-submit-btn text-bold">Lưu thay đổi</button>
             </form>
         </div>
     </div>
 
-    <!-- Change Password Modal -->
     <div id="password-overlay" class="overlay hidden">
         <div class="login-modal">
-            <button id="close-password" class="close-btn">&times;</button>
+            <button id="close-password" class="close-btn" type="button">&times;</button>
             <h2 class="text-24 text-bold">Đổi mật khẩu</h2>
             <form id="password-form">
+                <div class="form-group">
+                    <label class="text-14">Mật khẩu hiện tại</label>
+                    <input type="password" id="current-password" required>
+                </div>
                 <div class="form-group">
                     <label class="text-14">Mật khẩu mới</label>
                     <input type="password" id="new-password" required>
@@ -215,6 +216,71 @@
                 </div>
                 <p id="pass-error" class="error-msg hidden">Mật khẩu không khớp!</p>
                 <button type="submit" class="login-submit-btn text-bold">Cập nhật mật khẩu</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="product-overlay" class="overlay hidden">
+        <div class="login-modal wide-modal">
+            <button id="close-product" class="close-btn" type="button">&times;</button>
+            <h2 id="product-form-title" class="text-24 text-bold">Thêm sản phẩm</h2>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="text-14">Tên sản phẩm</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">SKU</label>
+                        <input type="text" id="product-sku" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Danh mục</label>
+                        <input type="text" id="product-category" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Thương hiệu</label>
+                        <input type="text" id="product-brand">
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Size</label>
+                        <input type="text" id="product-size">
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Màu</label>
+                        <input type="text" id="product-color">
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Giá nhập</label>
+                        <input type="number" id="product-cost" min="0" step="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Giá bán</label>
+                        <input type="number" id="product-price" min="0" step="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Tồn kho</label>
+                        <input type="number" id="product-stock" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-14">Trạng thái</label>
+                        <input type="text" id="product-status" required placeholder="Đang bán">
+                    </div>
+                    <div class="form-group form-group-full">
+                        <label class="text-14">Link sản phẩm</label>
+                        <input type="url" id="product-link">
+                    </div>
+                    <div class="form-group form-group-full">
+                        <label class="text-14">Ghi chú</label>
+                        <textarea id="product-note" rows="3"></textarea>
+                    </div>
+                </div>
+                <p id="product-error" class="error-msg hidden"></p>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-product" class="secondary-btn text-bold">Hủy</button>
+                    <button type="submit" class="login-submit-btn text-bold">Lưu sản phẩm</button>
+                </div>
             </form>
         </div>
     </div>
