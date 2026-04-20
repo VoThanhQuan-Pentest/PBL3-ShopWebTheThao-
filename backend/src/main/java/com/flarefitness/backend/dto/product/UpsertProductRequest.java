@@ -7,27 +7,28 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record UpsertProductRequest(
-        @NotBlank(message = "Tên sản phẩm là bắt buộc.")
+        @NotBlank(message = "Ten san pham la bat buoc.")
         String tenSanPham,
-        @NotBlank(message = "SKU là bắt buộc.")
+        @NotBlank(message = "SKU la bat buoc.")
         String sku,
-        @NotBlank(message = "Danh mục là bắt buộc.")
+        @NotBlank(message = "Danh muc la bat buoc.")
         String danhMuc,
         String thuongHieu,
         String size,
         String mau,
-        @NotNull(message = "Giá nhập là bắt buộc.")
-        @DecimalMin(value = "0.0", inclusive = true, message = "Giá nhập phải >= 0.")
+        @NotNull(message = "Gia nhap la bat buoc.")
+        @DecimalMin(value = "0.0", inclusive = true, message = "Gia nhap phai >= 0.")
         BigDecimal giaNhap,
-        @NotNull(message = "Giá bán là bắt buộc.")
-        @DecimalMin(value = "0.0", inclusive = true, message = "Giá bán phải >= 0.")
+        @NotNull(message = "Gia ban la bat buoc.")
+        @DecimalMin(value = "0.0", inclusive = true, message = "Gia ban phai >= 0.")
         BigDecimal giaBan,
-        @NotNull(message = "Tồn kho là bắt buộc.")
-        @Min(value = 0, message = "Tồn kho phải >= 0.")
+        @NotNull(message = "Ton kho la bat buoc.")
+        @Min(value = 0, message = "Ton kho phai >= 0.")
         Integer tonKho,
-        @NotBlank(message = "Trạng thái là bắt buộc.")
+        @NotBlank(message = "Trang thai la bat buoc.")
         String trangThai,
         String linkSanPham,
+        String hinhAnhUrl,
         String ghiChu
 ) {
 }

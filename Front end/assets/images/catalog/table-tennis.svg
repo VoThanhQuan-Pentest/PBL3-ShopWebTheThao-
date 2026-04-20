@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c2d12"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="650" cy="150" r="120" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="150" cy="680" r="150" fill="rgba(255,255,255,0.07)"/>
+  <rect x="60" y="60" width="680" height="680" rx="36" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)"/>
+  <text x="84" y="128" fill="#fff7ed" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">Flare Fitness</text>
+  <text x="84" y="186" fill="#fee2e2" font-family="Segoe UI, Arial, sans-serif" font-size="54" font-weight="800">TABLE TENNIS</text>
+  <text x="84" y="258" fill="#fecaca" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">Rackets, rubbers, balls, nets and glue</text>
+  <rect x="160" y="380" width="210" height="32" rx="16" fill="#f8fafc" transform="rotate(-18 160 380)"/>
+  <circle cx="354" cy="445" r="88" fill="#f97316"/>
+  <rect x="430" y="420" width="210" height="32" rx="16" fill="#111827" transform="rotate(14 430 420)"/>
+  <circle cx="470" cy="300" r="28" fill="#f8fafc"/>
+  <text x="84" y="690" fill="#fde68a" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">Sport retail seed image</text>
+</svg>

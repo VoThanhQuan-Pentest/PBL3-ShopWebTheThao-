@@ -135,6 +135,7 @@ public class ProductService {
         product.setTonKho(request.tonKho());
         product.setTrangThai(request.trangThai());
         product.setLinkSanPham(request.linkSanPham());
+        product.setHinhAnhUrl(request.hinhAnhUrl());
         product.setGhiChu(request.ghiChu());
     }
 
@@ -152,6 +153,7 @@ public class ProductService {
                 product.getTonKho(),
                 product.getTrangThai(),
                 product.getLinkSanPham(),
+                product.getHinhAnhUrl(),
                 product.getGhiChu(),
                 product.getCreatedAt()
         );

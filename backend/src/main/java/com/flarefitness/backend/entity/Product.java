@@ -47,6 +47,9 @@ public class Product extends BaseEntity {
     @Column(name = "link_san_pham", length = 500)
     private String linkSanPham;
 
+    @Column(name = "hinh_anh_url", length = 500)
+    private String hinhAnhUrl;
+
     @Column(name = "ghi_chu", length = 500)
     private String ghiChu;
 
@@ -144,6 +147,14 @@ public class Product extends BaseEntity {
 
     public void setLinkSanPham(String linkSanPham) {
         this.linkSanPham = linkSanPham;
+    }
+
+    public String getHinhAnhUrl() {
+        return hinhAnhUrl;
+    }
+
+    public void setHinhAnhUrl(String hinhAnhUrl) {
+        this.hinhAnhUrl = hinhAnhUrl;
     }
 
     public String getGhiChu() {

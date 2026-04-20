@@ -13,6 +13,9 @@ public class Customer extends BaseEntity {
     @Column(name = "id", nullable = false, length = 64)
     private String id;
 
+    @Column(name = "user_id", length = 64)
+    private String userId;
+
     @Column(name = "ten_khach", nullable = false, length = 150)
     private String tenKhach;
 
@@ -40,6 +43,14 @@ public class Customer extends BaseEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getTenKhach() {

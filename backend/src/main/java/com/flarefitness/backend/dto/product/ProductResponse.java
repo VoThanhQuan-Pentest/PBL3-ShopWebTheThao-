@@ -16,6 +16,7 @@ public record ProductResponse(
         Integer tonKho,
         String trangThai,
         String linkSanPham,
+        String hinhAnhUrl,
         String ghiChu,
         LocalDateTime ngayTao
 ) {

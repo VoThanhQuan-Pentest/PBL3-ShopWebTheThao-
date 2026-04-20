@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b2e59"/>
+      <stop offset="100%" stop-color="#1d8348"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="620" cy="180" r="130" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="170" cy="640" r="170" fill="rgba(255,255,255,0.08)"/>
+  <rect x="60" y="60" width="680" height="680" rx="36" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)"/>
+  <text x="84" y="128" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">Flare Fitness</text>
+  <text x="84" y="186" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="60" font-weight="800">FOOTBALL</text>
+  <text x="84" y="258" fill="#e5e7eb" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">Boots, jerseys, pants, bags and accessories</text>
+  <circle cx="400" cy="450" r="140" fill="#f8fafc"/>
+  <polygon points="400,350 442,382 426,434 374,434 358,382" fill="#0b2e59"/>
+  <polygon points="301,409 349,395 374,434 343,475 294,458" fill="#0b2e59"/>
+  <polygon points="499,409 548,458 457,475 426,434 451,395" fill="#0b2e59"/>
+  <polygon points="333,526 364,481 436,481 467,526 400,575" fill="#0b2e59"/>
+  <text x="84" y="690" fill="#fde68a" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">Sport retail seed image</text>
+</svg>

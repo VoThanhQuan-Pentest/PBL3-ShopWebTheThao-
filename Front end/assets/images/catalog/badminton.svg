@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="645" cy="170" r="125" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="150" cy="660" r="155" fill="rgba(255,255,255,0.08)"/>
+  <rect x="60" y="60" width="680" height="680" rx="36" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.18)"/>
+  <text x="84" y="128" fill="#eef2ff" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700">Flare Fitness</text>
+  <text x="84" y="186" fill="#e0e7ff" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="800">BADMINTON</text>
+  <text x="84" y="258" fill="#c7d2fe" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="600">Rackets, shoes, shuttlecocks, strings and grips</text>
+  <ellipse cx="355" cy="450" rx="100" ry="140" fill="none" stroke="#f8fafc" stroke-width="18" transform="rotate(-22 355 450)"/>
+  <rect x="418" y="535" width="150" height="18" rx="9" fill="#f8fafc" transform="rotate(-22 418 535)"/>
+  <ellipse cx="520" cy="390" rx="24" ry="52" fill="#f8fafc" transform="rotate(18 520 390)"/>
+  <circle cx="520" cy="435" r="10" fill="#1d4ed8"/>
+  <text x="84" y="690" fill="#fde68a" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">Sport retail seed image</text>
+</svg>
