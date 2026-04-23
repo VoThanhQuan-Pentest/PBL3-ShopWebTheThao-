@@ -16,6 +16,7 @@ import com.flarefitness.backend.security.IpRateLimitService;
 import com.flarefitness.backend.security.JwtTokenService;
 import com.flarefitness.backend.security.RedisTokenStore;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -69,7 +70,7 @@ public class AuthService {
         validateRegisterRequest(request);
 
         User user = new User();
-        user.setId(UUID.randomUUID().toString());
+        user.setId(generateUserId(CUSTOMER_ROLE));
         user.setUsername(request.username().trim());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(CUSTOMER_ROLE);
@@ -224,6 +225,52 @@ public class AuthService {
         customer.setId(UUID.randomUUID().toString());
         customer.setCreatedAt(LocalDateTime.now());
         return customer;
+    }
+
+    private String generateUserId(String role) {
+        String prefix = getUserIdPrefix(role);
+        int nextNumber = userRepository.findAll()
+                .stream()
+                .map(User::getId)
+                .mapToInt(id -> extractSequentialNumber(id, prefix))
+                .max()
+                .orElse(0) + 1;
+
+        String candidate = prefix + String.format("%03d", nextNumber);
+        while (userRepository.existsById(candidate)) {
+            nextNumber += 1;
+            candidate = prefix + String.format("%03d", nextNumber);
+        }
+        return candidate;
+    }
+
+    private String getUserIdPrefix(String role) {
+        String normalizedRole = role == null ? "" : role.trim().toLowerCase(Locale.ROOT);
+        if (normalizedRole.contains("quan") || normalizedRole.contains("admin")) {
+            return "user-admin-";
+        }
+        if (normalizedRole.contains("nhan") || normalizedRole.contains("staff")) {
+            return "user-staff-";
+        }
+        return "user-customer-";
+    }
+
+    private int extractSequentialNumber(String value, String prefix) {
+        if (value == null) {
+            return 0;
+        }
+
+        String trimmedValue = value.trim();
+        if (!trimmedValue.startsWith(prefix)) {
+            return 0;
+        }
+
+        String suffix = trimmedValue.substring(prefix.length());
+        try {
+            return Integer.parseInt(suffix);
+        } catch (NumberFormatException exception) {
+            return 0;
+        }
     }
 
     private boolean isBlank(String value) {

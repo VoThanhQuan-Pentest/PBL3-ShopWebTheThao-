@@ -40,6 +40,8 @@
                     <ul class="dropdown-list">
                         <li><a href="#" id="edit-profile-link"><i class="fa-solid fa-user-pen"></i> Chỉnh sửa thông tin</a></li>
                         <li><a href="#" id="change-pass-link"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a></li>
+                        <li id="address-book-link-wrap"><a href="#" id="address-book-link"><i class="fa-solid fa-book"></i> Sổ địa chỉ</a></li>
+                        <li id="orders-link-wrap"><a href="#" id="orders-link"><i class="fa-solid fa-box-archive"></i> Đơn hàng của bạn</a></li>
                         <li id="admin-link" class="hidden"><a href="#admin-panel"><i class="fa-solid fa-gauge"></i> Trang quản lý</a></li>
                         <li><hr></li>
                         <li><a href="#" id="logout-link" class="color-red"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
@@ -66,6 +68,7 @@
             <li class="nav-item"><a class="text-18" data-collection="shock-sale" href="#">Giảm giá cực sâu</a></li>
             <li class="nav-item"><a class="text-18" data-collection="worldcup-2026" href="#">WorldCup 2026</a></li>
             <li class="nav-item"><a class="text-18" data-collection="seagames-2025" href="#">SEAGAMES 2025</a></li>
+            <li class="nav-item"><a class="text-18" data-collection="superstar-signatures" href="#">Chữ ký siêu sao</a></li>
         </ul>
     </header>
 
@@ -110,10 +113,30 @@
 
     <section id="admin-panel" class="hidden">
         <div class="admin-container">
+            <div class="workspace-hero">
+                <div class="workspace-hero-main">
+                    <button id="workspace-back-btn" class="secondary-chip workspace-back-btn" type="button">Quay lại cửa hàng</button>
+                    <p id="workspace-eyebrow" class="catalog-eyebrow">Workspace nội bộ</p>
+                    <h2 id="workspace-title" class="text-24 text-bold">Bảng điều khiển nội bộ</h2>
+                    <p id="workspace-description" class="catalog-description">Quản lý vận hành theo đúng vai trò nhân viên hoặc quản lí.</p>
+                </div>
+                <div class="workspace-hero-meta">
+                    <span id="workspace-role-badge" class="role-badge role-admin">Quản lí</span>
+                </div>
+            </div>
             <h2 class="text-24 text-bold">Bảng điều khiển quản lý</h2>
             <div class="admin-tabs">
-                <button class="tab-btn active" data-tab="products-mgmt" type="button">Quản lý sản phẩm</button>
-                <button class="tab-btn" id="users-tab-btn" data-tab="users-mgmt" type="button">Quản lý người dùng</button>
+                <button class="tab-btn active" data-tab="products-mgmt" data-role-scope="staff" type="button">Sản phẩm</button>
+                <button class="tab-btn" data-tab="orders-mgmt" data-role-scope="staff" type="button">Đơn hàng</button>
+                <button class="tab-btn" data-tab="categories-mgmt" data-role-scope="staff" type="button">Danh mục</button>
+                <button class="tab-btn" data-tab="returns-mgmt" data-role-scope="staff" type="button">Đổi trả / hủy</button>
+                <button class="tab-btn" data-tab="reviews-mgmt" data-role-scope="staff" type="button">Đánh giá</button>
+                <button class="tab-btn" data-tab="support-mgmt" data-role-scope="staff" type="button">Hỗ trợ khách hàng</button>
+                <button class="tab-btn" id="users-tab-btn" data-tab="users-mgmt" data-role-scope="manager" type="button">Tài khoản</button>
+                <button class="tab-btn" data-tab="customers-mgmt" data-role-scope="manager" type="button">Khách hàng</button>
+                <button class="tab-btn" data-tab="stats-mgmt" data-role-scope="manager" type="button">Doanh thu</button>
+                <button class="tab-btn" data-tab="bestseller-mgmt" data-role-scope="manager" type="button">Bán chạy</button>
+                <button class="tab-btn" data-tab="vouchers-mgmt" data-role-scope="manager" type="button">Ưu đãi</button>
             </div>
 
             <div id="products-mgmt" class="tab-content active">
@@ -136,6 +159,42 @@
             </div>
 
             <div id="users-mgmt" class="tab-content">
+                <div class="workspace-table-card">
+                    <div class="workspace-card-head">
+                        <div>
+                            <h3>Quản lý tài khoản</h3>
+                            <p class="customer-card-meta">Tìm theo ID, họ tên, username, SĐT, email và lọc theo ngày tạo tài khoản.</p>
+                        </div>
+                        <span id="account-filter-created-count" class="workspace-chip">0 tài khoản</span>
+                    </div>
+                    <div class="workspace-toolbar account-toolbar">
+                        <div class="form-group workspace-toolbar-search">
+                            <label class="text-14" for="account-search-input">Tìm kiếm tài khoản</label>
+                            <input id="account-search-input" type="text" placeholder="Nhập ID / họ tên / username / SĐT / Gmail">
+                        </div>
+                        <div class="workspace-toolbar-inline account-date-range">
+                            <div class="form-group">
+                                <label class="text-14" for="account-created-preset">Lọc theo ngày tạo</label>
+                                <select id="account-created-preset" class="workspace-inline-select">
+                                    <option value="all">Tất cả</option>
+                                    <option value="day">1 ngày</option>
+                                    <option value="week">1 tuần</option>
+                                    <option value="month">1 tháng</option>
+                                    <option value="custom">Tùy chọn</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="account-created-start">Từ ngày</label>
+                                <input id="account-created-start" class="workspace-inline-select" type="date">
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="account-created-end">Đến ngày</label>
+                                <input id="account-created-end" class="workspace-inline-select" type="date">
+                            </div>
+                        </div>
+                    </div>
+                    <p id="account-filter-summary" class="customer-card-meta">Hiển thị toàn bộ tài khoản hiện có.</p>
+                </div>
                 <table class="admin-table">
                     <thead>
                         <tr>
@@ -149,7 +208,44 @@
                     </thead>
                     <tbody id="admin-user-list"></tbody>
                 </table>
+                <div class="action-bar">
+                    <button id="add-account-btn" class="add-btn" type="button"><i class="fa-solid fa-user-plus"></i> Thêm tài khoản</button>
+                </div>
+                <form id="account-form" class="workspace-form hidden">
+                    <div class="workspace-side-head">
+                        <h3 id="account-form-title">Thêm tài khoản</h3>
+                        <button id="cancel-account-edit" class="cart-text-btn secondary" type="button">Hủy</button>
+                    </div>
+                    <input type="hidden" id="account-id">
+                    <input type="hidden" id="account-created-at">
+                    <div class="form-grid compact-grid">
+                        <div class="form-group"><label class="text-14" for="account-name">Họ tên</label><input id="account-name" type="text" required></div>
+                        <div class="form-group"><label class="text-14" for="account-username">Username</label><input id="account-username" type="text" required></div>
+                        <div class="form-group"><label class="text-14" for="account-email">Email</label><input id="account-email" type="email" required></div>
+                        <div class="form-group"><label class="text-14" for="account-phone">SĐT</label><input id="account-phone" type="text"></div>
+                        <div class="form-group">
+                            <label class="text-14" for="account-password">Mật khẩu</label>
+                            <div class="password-field-inline">
+                                <input id="account-password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu">
+                                <button id="toggle-account-password" class="secondary-btn text-bold" type="button">Hiện</button>
+                            </div>
+                        </div>
+                        <div class="form-group"><label class="text-14" for="account-role">Vai trò</label><select id="account-role"><option value="Khách hàng">Khách hàng</option><option value="Nhân viên">Nhân viên</option><option value="Quản trị viên">Quản lí</option></select></div>
+                        <div class="form-group"><label class="text-14" for="account-status">Trạng thái</label><select id="account-status"><option value="Hoạt động">Hoạt động</option><option value="Tạm khóa">Tạm khóa</option></select></div>
+                    </div>
+                    <p id="account-form-error" class="error-msg hidden"></p>
+                    <button class="login-submit-btn text-bold" type="submit">Lưu tài khoản</button>
+                </form>
             </div>
+            <div id="orders-mgmt" class="tab-content" data-role-scope="staff"><div id="staff-orders-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="categories-mgmt" class="tab-content" data-role-scope="staff"><div id="categories-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="returns-mgmt" class="tab-content" data-role-scope="staff"><div id="returns-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="reviews-mgmt" class="tab-content" data-role-scope="staff"><div id="reviews-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="support-mgmt" class="tab-content" data-role-scope="staff"><div id="support-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="customers-mgmt" class="tab-content" data-role-scope="manager"><div id="customers-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="stats-mgmt" class="tab-content" data-role-scope="manager"><div id="stats-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="bestseller-mgmt" class="tab-content" data-role-scope="manager"><div id="bestseller-mgmt-panel" class="workspace-dynamic-panel"></div></div>
+            <div id="vouchers-mgmt" class="tab-content" data-role-scope="manager"><div id="vouchers-mgmt-panel" class="workspace-dynamic-panel"></div></div>
         </div>
     </section>
 
@@ -223,6 +319,197 @@
 
         <div id="active-filters" class="active-filters hidden"></div>
 
+        <section id="home-sale-showcase" class="home-sale-showcase hidden">
+            <div class="home-sale-shell">
+                <div class="home-sale-ribbon">SPECIAL SALE !</div>
+                <div id="home-sale-track" class="home-sale-track"></div>
+                <div id="home-sale-dots" class="home-sale-dots"></div>
+            </div>
+        </section>
+
+        <section id="home-feature-strip" class="home-feature-strip hidden">
+            <article class="home-feature-box">
+                <i class="fa-solid fa-truck-fast"></i>
+                <div>
+                    <strong>Vận chuyển SIÊU TỐC</strong>
+                    <span>Khu vực TOÀN QUỐC</span>
+                </div>
+            </article>
+            <article class="home-feature-box">
+                <i class="fa-regular fa-circle-check"></i>
+                <div>
+                    <strong>Cam kết CHÍNH HÃNG</strong>
+                    <span>Sản phẩm TRỌN ĐỜI</span>
+                </div>
+            </article>
+            <article class="home-feature-box">
+                <i class="fa-regular fa-credit-card"></i>
+                <div>
+                    <strong>Tiến hành THANH TOÁN</strong>
+                    <span>Với nhiều PHƯƠNG THỨC</span>
+                </div>
+            </article>
+            <article class="home-feature-box">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+                <div>
+                    <strong>100% HOÀN TIỀN</strong>
+                    <span>Nếu sản phẩm lỗi</span>
+                </div>
+            </article>
+        </section>
+
+        <section id="personalized-home-view" class="product-detail-section hidden">
+            <div class="workspace-card-head">
+                <div>
+                    <h3>Dành cho bạn</h3>
+                </div>
+            </div>
+            <p class="catalog-description">Hệ thống ưu tiên các sản phẩm gần với nhóm hàng, thương hiệu và khoảng giá bạn thường quan tâm.</p>
+            <div class="catalog-status home-personalized-status">
+                <span id="personalized-home-count" class="catalog-count">0 sản phẩm</span>
+            </div>
+            <div class="collection-filters home-personalized-filters">
+                <label class="filter-select">
+                    <span>Chọn mức giá</span>
+                    <select id="home-personalized-price-filter">
+                        <option value="all">Tất cả mức giá</option>
+                        <option value="under-500">Dưới 500.000đ</option>
+                        <option value="500-1000">500.000đ - 1.000.000đ</option>
+                        <option value="1000-1500">1.000.000đ - 1.500.000đ</option>
+                        <option value="over-1500">Trên 1.500.000đ</option>
+                    </select>
+                </label>
+                <label class="filter-select">
+                    <span>Loại sản phẩm</span>
+                    <select id="home-personalized-type-filter">
+                        <option value="all">Tất cả loại sản phẩm</option>
+                    </select>
+                </label>
+                <label class="filter-select">
+                    <span>Thương hiệu</span>
+                    <select id="home-personalized-brand-filter">
+                        <option value="all">Tất cả thương hiệu</option>
+                    </select>
+                </label>
+                <label class="filter-select">
+                    <span>Size</span>
+                    <select id="home-personalized-size-filter">
+                        <option value="all">Tất cả size</option>
+                    </select>
+                </label>
+                <label class="filter-select">
+                    <span>Sắp xếp</span>
+                    <select id="home-personalized-sort-filter">
+                        <option value="featured">Mặc định</option>
+                        <option value="price-asc">Giá tăng dần</option>
+                        <option value="price-desc">Giá giảm dần</option>
+                        <option value="stock-desc">Tồn kho nhiều nhất</option>
+                        <option value="name-asc">Tên A-Z</option>
+                    </select>
+                </label>
+            </div>
+            <div id="personalized-home-grid" class="product-grid personalized-product-grid"></div>
+        </section>
+
+        <section id="product-detail-view" class="product-detail-view hidden">
+            <div class="product-detail-breadcrumb">
+                <button id="product-detail-back-btn" class="cart-text-btn secondary" type="button"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+                <span id="product-detail-breadcrumb"></span>
+            </div>
+
+            <div class="product-detail-hero">
+                <div class="product-detail-gallery">
+                    <div class="product-detail-main-image">
+                        <img id="product-detail-main-image" src="" alt="Sản phẩm">
+                    </div>
+                    <div id="product-detail-thumbnails" class="product-detail-thumbnails"></div>
+                </div>
+
+                <div class="product-detail-summary">
+                    <p id="product-detail-category" class="product-category"></p>
+                    <h2 id="product-detail-title" class="product-detail-title"></h2>
+                    <div class="product-detail-meta-line">
+                        <span id="product-detail-brand"></span>
+                        <span id="product-detail-rating"></span>
+                        <span id="product-detail-stock"></span>
+                    </div>
+                    <div id="product-detail-price" class="product-detail-price-block"></div>
+                    <p id="product-detail-short-description" class="product-detail-short-description"></p>
+
+                    <div id="product-detail-type-wrap" class="product-detail-option-group hidden">
+                        <h3>Loại hàng</h3>
+                        <div id="product-detail-type-options" class="product-detail-option-list"></div>
+                    </div>
+
+                    <div id="product-detail-size-wrap" class="product-detail-option-group hidden">
+                        <h3>Size</h3>
+                        <div id="product-detail-size-options" class="product-detail-option-list"></div>
+                    </div>
+
+                    <div class="product-detail-option-group">
+                        <h3>Số lượng</h3>
+                        <div class="quantity-editor inline product-detail-quantity">
+                            <button id="product-detail-qty-minus" class="qty-btn" type="button"><i class="fa-solid fa-minus"></i></button>
+                            <input id="product-detail-quantity" type="number" min="1" value="1">
+                            <button id="product-detail-qty-plus" class="qty-btn" type="button"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="product-detail-actions">
+                        <button id="product-detail-wishlist-btn" class="secondary-btn text-bold" type="button"><i class="fa-solid fa-heart"></i> Yêu thích</button>
+                        <button id="product-detail-add-cart-btn" class="secondary-btn text-bold" type="button"><i class="fa-solid fa-cart-plus"></i> Thêm vào giỏ</button>
+                        <button id="product-detail-buy-now-btn" class="login-submit-btn text-bold" type="button">Mua ngay</button>
+                    </div>
+
+                    <p id="product-detail-error" class="error-msg hidden"></p>
+                </div>
+            </div>
+
+            <section class="product-detail-section">
+                <div class="workspace-card-head">
+                    <h3>Mô tả sản phẩm</h3>
+                </div>
+                <div id="product-detail-description" class="product-detail-description"></div>
+            </section>
+
+            <section class="product-detail-section">
+                <div class="workspace-card-head">
+                    <h3>Đánh giá sản phẩm</h3>
+                    <span id="product-detail-review-count" class="workspace-chip">0 đánh giá</span>
+                </div>
+                <form id="product-detail-review-form" class="product-review-form">
+                    <div class="form-grid compact-grid">
+                        <div class="form-group">
+                            <label class="text-14" for="product-review-rating">Điểm đánh giá</label>
+                            <select id="product-review-rating">
+                                <option value="5">5 sao</option>
+                                <option value="4">4 sao</option>
+                                <option value="3">3 sao</option>
+                                <option value="2">2 sao</option>
+                                <option value="1">1 sao</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label class="text-14" for="product-review-content">Nội dung đánh giá</label>
+                            <textarea id="product-review-content" rows="3" placeholder="Chia sẻ trải nghiệm thực tế của bạn về sản phẩm này"></textarea>
+                        </div>
+                    </div>
+                    <p id="product-review-error" class="error-msg hidden"></p>
+                    <div class="workspace-row-actions">
+                        <button id="product-review-submit" class="secondary-btn text-bold" type="submit">Gửi đánh giá</button>
+                    </div>
+                </form>
+                <div id="product-detail-reviews" class="product-detail-reviews"></div>
+            </section>
+
+            <section class="product-detail-section">
+                <div class="workspace-card-head">
+                    <h3>Sản phẩm bạn cũng có thể thích</h3>
+                </div>
+                <div id="product-detail-related" class="product-grid product-detail-related"></div>
+            </section>
+        </section>
+
         <section id="cart-view" class="cart-view hidden">
             <div class="cart-view-header">
                 <div>
@@ -259,6 +546,17 @@
                     </div>
 
                     <div id="cart-items" class="cart-items"></div>
+
+                    <section id="cart-recommendations-section" class="product-detail-section hidden">
+                        <div class="workspace-card-head">
+                            <div>
+                                <p class="catalog-eyebrow small-eyebrow">Gợi ý mua kèm</p>
+                                <h3>Bạn có thể cần thêm</h3>
+                            </div>
+                            <span class="workspace-chip">Từ hồ sơ hành vi + giỏ hàng</span>
+                        </div>
+                        <div id="cart-recommendations-grid" class="product-grid personalized-product-grid"></div>
+                    </section>
                 </div>
 
                 <aside class="cart-summary-panel">
@@ -275,6 +573,21 @@
                         <div class="cart-summary-line">
                             <span>Phí vận chuyển</span>
                             <strong id="cart-summary-shipping">0đ</strong>
+                        </div>
+                        <div id="cart-discount-line" class="cart-summary-line discount hidden">
+                            <span>Ưu đãi</span>
+                            <strong id="cart-summary-discount">-0đ</strong>
+                        </div>
+                        <div class="voucher-panel">
+                            <div class="voucher-panel-head">
+                                <div>
+                                    <p class="voucher-eyebrow">Ưu đãi của bạn</p>
+                                    <h4>Mã khuyến mãi</h4>
+                                </div>
+                                <button id="clear-voucher-btn" class="cart-text-btn secondary hidden" type="button">Bỏ mã</button>
+                            </div>
+                            <p id="voucher-applied-note" class="voucher-applied-note hidden"></p>
+                            <div id="voucher-list" class="voucher-list"></div>
                         </div>
                         <div class="cart-summary-line total">
                             <span>Tổng thanh toán</span>
@@ -305,6 +618,175 @@
             </div>
 
             <div id="wishlist-grid" class="wishlist-grid hidden"></div>
+        </section>
+
+        <section id="checkout-view" class="checkout-view hidden">
+            <div class="checkout-shell">
+                <button id="checkout-back-btn" class="checkout-back-btn" type="button">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span id="checkout-back-text"></span>
+                </button>
+
+                <div class="checkout-layout">
+                    <div class="checkout-main">
+                        <div class="checkout-head">
+                            <p id="checkout-eyebrow" class="catalog-eyebrow"></p>
+                            <h2 id="checkout-title" class="section-title text-24 text-bold"></h2>
+                            <p id="checkout-description" class="catalog-description"></p>
+                        </div>
+                        <section class="customer-card checkout-address-card">
+                            <div class="customer-card-head">
+                                <div>
+                                    <p class="catalog-eyebrow small-eyebrow">Giao hàng đến</p>
+                                    <h3>Chọn địa chỉ nhận hàng</h3>
+                                </div>
+                                <button id="checkout-manage-addresses-btn" class="secondary-btn text-bold" type="button">Mở sổ địa chỉ</button>
+                            </div>
+                            <div id="checkout-address-list" class="checkout-address-list"></div>
+                        </section>
+                        <div id="checkout-items" class="checkout-items"></div>
+                    </div>
+
+                    <aside class="checkout-summary-panel">
+                        <div class="cart-summary-card checkout-summary-card">
+                            <h3 id="checkout-summary-title"></h3>
+                            <div class="cart-summary-line">
+                                <span id="checkout-count-label"></span>
+                                <strong id="checkout-summary-count">0</strong>
+                            </div>
+                            <div class="cart-summary-line">
+                                <span id="checkout-subtotal-label"></span>
+                                <strong id="checkout-summary-subtotal">0đ</strong>
+                            </div>
+                            <div class="cart-summary-line">
+                                <span id="checkout-shipping-label"></span>
+                                <strong id="checkout-summary-shipping">0đ</strong>
+                            </div>
+                            <div id="checkout-discount-line" class="cart-summary-line discount hidden">
+                                <span id="checkout-discount-label"></span>
+                                <strong id="checkout-summary-discount">-0đ</strong>
+                            </div>
+                            <div class="voucher-panel checkout-voucher-panel">
+                                <div class="voucher-panel-head">
+                                    <div>
+                                        <p id="checkout-voucher-eyebrow" class="voucher-eyebrow"></p>
+                                        <h4 id="checkout-voucher-title"></h4>
+                                    </div>
+                                    <button id="checkout-clear-voucher-btn" class="cart-text-btn secondary hidden" type="button"></button>
+                                </div>
+                                <p id="checkout-voucher-applied-note" class="voucher-applied-note hidden"></p>
+                                <div id="checkout-voucher-list" class="voucher-list"></div>
+                            </div>
+                            <div class="cart-summary-line total">
+                                <span id="checkout-total-label"></span>
+                                <strong id="checkout-summary-total">0đ</strong>
+                            </div>
+                            <button id="place-order-btn" class="login-submit-btn text-bold" type="button"></button>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <section id="address-book-view" class="customer-view hidden">
+            <div class="cart-view-header">
+                <div>
+                    <p class="catalog-eyebrow">Tài khoản khách hàng</p>
+                    <h2 class="section-title text-24 text-bold">Sổ địa chỉ</h2>
+                    <p class="catalog-description">Quản lý các địa chỉ giao hàng để sử dụng nhanh cho những lần mua tiếp theo.</p>
+                </div>
+                <div class="customer-view-actions">
+                    <button id="address-book-back-btn" class="secondary-chip" type="button">Quay lại mua sắm</button>
+                    <button id="add-address-btn" class="login-submit-btn text-bold customer-primary-btn" type="button">Thêm địa chỉ mới</button>
+                </div>
+            </div>
+
+            <div class="customer-layout">
+                <div class="customer-main">
+                    <div id="address-empty-state" class="cart-empty-state hidden">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <h3>Chưa có địa chỉ giao hàng</h3>
+                        <p>Thêm địa chỉ để bạn có thể lưu sẵn nơi nhận hàng và dùng lại nhanh ở những lần đặt tiếp theo.</p>
+                    </div>
+                    <div id="address-list" class="address-list"></div>
+                </div>
+
+                <aside class="customer-side-panel">
+                    <form id="address-form" class="customer-card address-form-card hidden">
+                        <div class="customer-card-head">
+                            <h3 id="address-form-title">Thêm địa chỉ mới</h3>
+                            <button id="cancel-address-edit" class="cart-text-btn secondary" type="button">Hủy</button>
+                        </div>
+                        <input id="address-id" type="hidden">
+                        <div class="form-grid compact-grid">
+                            <div class="form-group">
+                                <label class="text-14" for="address-recipient">Người nhận</label>
+                                <input id="address-recipient" type="text" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="address-phone">Số điện thoại</label>
+                                <input id="address-phone" type="text" required>
+                            </div>
+                            <div class="form-group form-group-full">
+                                <label class="text-14" for="address-line">Địa chỉ chi tiết</label>
+                                <input id="address-line" type="text" required placeholder="Số nhà, tên đường...">
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="address-city">Tỉnh/Thành phố</label>
+                                <select id="address-city" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="address-district">Quận/Huyện</label>
+                                <select id="address-district" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="address-ward">Phường/Xã</label>
+                                <select id="address-ward" required></select>
+                            </div>
+                            <div class="form-group form-group-full">
+                                <p class="address-admin-note">Danh sách tỉnh/thành và phường/xã dùng theo bộ dữ liệu hành chính mới của Việt Nam. Từ 01/07/2025, địa chỉ chính thức dùng mô hình 2 cấp nên ô Quận/Huyện được giữ để tương thích biểu mẫu cũ.</p>
+                            </div>
+                            <div class="form-group form-group-full">
+                                <label class="text-14" for="address-note">Ghi chú</label>
+                                <textarea id="address-note" rows="3" placeholder="Ví dụ: gọi trước khi giao hàng"></textarea>
+                            </div>
+                        </div>
+                        <label class="cart-check-label inline-check">
+                            <input id="address-default" type="checkbox">
+                            <span>Đặt làm địa chỉ mặc định</span>
+                        </label>
+                        <p id="address-form-error" class="error-msg hidden"></p>
+                        <button class="login-submit-btn text-bold" type="submit">Lưu địa chỉ</button>
+                    </form>
+                </aside>
+            </div>
+        </section>
+
+        <section id="orders-view" class="customer-view hidden">
+            <div class="cart-view-header">
+                <div>
+                    <p class="catalog-eyebrow">Tài khoản khách hàng</p>
+                    <h2 class="section-title text-24 text-bold">Đơn hàng của bạn</h2>
+                    <p class="catalog-description">Theo dõi các đơn đã thanh toán ở frontend demo, gồm sản phẩm, ưu đãi đã áp dụng và địa chỉ giao hàng.</p>
+                </div>
+                <button id="orders-back-btn" class="secondary-chip" type="button">Quay lại mua sắm</button>
+            </div>
+
+            <div id="orders-table-header" class="orders-table-header hidden">
+                <span>Đơn hàng</span>
+                <span>Ngày</span>
+                <span>Địa chỉ</span>
+                <span>Giá trị đơn hàng</span>
+                <span>TT thanh toán</span>
+            </div>
+
+            <div id="orders-empty-state" class="cart-empty-state hidden">
+                <i class="fa-solid fa-box-open"></i>
+                <h3>Chưa có đơn hàng nào</h3>
+                <p>Khi bạn thanh toán thành công, đơn hàng sẽ được lưu lại tại đây để tiện theo dõi.</p>
+            </div>
+
+            <div id="orders-list" class="orders-list"></div>
         </section>
 
         <div id="product-container" class="product-grid">
@@ -393,6 +875,22 @@
                 <div class="form-group">
                     <label for="register-phone" class="text-14">Số điện thoại</label>
                     <input type="text" id="register-phone" required placeholder="09xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label for="register-address-line" class="text-14">Địa chỉ chi tiết</label>
+                    <input type="text" id="register-address-line" required placeholder="Số nhà, tên đường...">
+                </div>
+                <div class="form-group">
+                    <label for="register-address-city" class="text-14">Tỉnh/Thành phố</label>
+                    <select id="register-address-city" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="register-address-district" class="text-14">Quận/Huyện</label>
+                    <select id="register-address-district" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="register-address-ward" class="text-14">Phường/Xã</label>
+                    <select id="register-address-ward" required></select>
                 </div>
                 <div class="form-group">
                     <label for="register-password" class="text-14">Mật khẩu</label>
@@ -592,6 +1090,28 @@
                     <button id="cancel-cart-item" class="secondary-btn text-bold" type="button">Hủy</button>
                     <button class="login-submit-btn text-bold" type="submit">Thêm vào giỏ</button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="support-chat-widget" class="support-chat-widget hidden">
+        <button id="support-chat-toggle" class="support-chat-toggle" type="button">
+            <i class="fa-solid fa-comments"></i>
+            <span>Tư vấn nhanh</span>
+        </button>
+        <div id="support-chat-panel" class="support-chat-panel hidden">
+            <div class="support-chat-head">
+                <div>
+                    <p class="catalog-eyebrow">Hỗ trợ khách hàng</p>
+                    <h3>Tư vấn trực tuyến</h3>
+                </div>
+                <button id="support-chat-close" class="close-btn compact" type="button">&times;</button>
+            </div>
+            <div id="support-chat-status" class="support-chat-status">Nhân viên sẽ phản hồi trực tiếp trong cuộc trò chuyện này.</div>
+            <div id="support-chat-messages" class="support-chat-messages"></div>
+            <form id="support-chat-form" class="support-chat-form">
+                <textarea id="support-chat-input" rows="3" placeholder="Nhập nội dung cần tư vấn..." required></textarea>
+                <button class="login-submit-btn text-bold" type="submit">Gửi tin nhắn</button>
             </form>
         </div>
     </div>

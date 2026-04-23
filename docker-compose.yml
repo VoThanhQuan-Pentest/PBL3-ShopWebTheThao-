@@ -13,6 +13,7 @@ services:
       - mysql-data:/var/lib/mysql
       - ./db-init/schema_full.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./db-init/product_images_seed.sql:/docker-entrypoint-initdb.d/02-product-images.sql:ro
+      - ./db-init/analytics_schema.sql:/docker-entrypoint-initdb.d/03-analytics-schema.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 10s

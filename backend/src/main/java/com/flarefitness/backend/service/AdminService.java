@@ -43,7 +43,8 @@ public class AdminService {
                 user.getUsername(),
                 user.getRole(),
                 user.getEmail(),
-                customer.map(Customer::getSdt).orElse(null)
+                customer.map(Customer::getSdt).orElse(null),
+                user.getCreatedAt()
         );
     }
 }

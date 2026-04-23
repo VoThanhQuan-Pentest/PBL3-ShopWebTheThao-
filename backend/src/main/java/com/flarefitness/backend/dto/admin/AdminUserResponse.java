@@ -6,6 +6,7 @@ public record AdminUserResponse(
         String username,
         String role,
         String email,
-        String sdt
+        String sdt,
+        java.time.LocalDateTime createdAt
 ) {
 }
