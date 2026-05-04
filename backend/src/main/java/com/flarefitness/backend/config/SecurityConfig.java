@@ -38,10 +38,18 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/api/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register", "/api/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/register/otp",
+                                "/api/auth/forgot-password",
+                                "/api/auth/forgot-password/otp"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/analytics/events").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/analytics/recommendations").permitAll()
+                        .requestMatchers("/api/support/threads/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        .requestMatchers("/api/support/me/**").authenticated()
                         .requestMatchers("/api/admin/analytics/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/admin/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/admin/products/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")

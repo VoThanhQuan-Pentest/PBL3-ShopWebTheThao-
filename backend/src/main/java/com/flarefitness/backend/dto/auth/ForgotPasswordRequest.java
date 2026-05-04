@@ -19,6 +19,9 @@ public record ForgotPasswordRequest(
         )
         String newPassword,
         @NotBlank(message = "Xác nhận mật khẩu là bắt buộc.")
-        String confirmPassword
+        String confirmPassword,
+        @NotBlank(message = "Mã OTP là bắt buộc.")
+        @Size(min = 6, max = 6, message = "Mã OTP phải gồm 6 chữ số.")
+        String otpCode
 ) {
 }

@@ -5,3 +5,6 @@
 tmp_index.html
 tmp_style.css
 tmp_main.js
+.env
+backend/target/
+tmp_vn_units*.json

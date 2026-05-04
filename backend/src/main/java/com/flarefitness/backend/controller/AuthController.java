@@ -5,6 +5,7 @@ import com.flarefitness.backend.dto.auth.CurrentUserResponse;
 import com.flarefitness.backend.dto.auth.ForgotPasswordRequest;
 import com.flarefitness.backend.dto.auth.LoginRequest;
 import com.flarefitness.backend.dto.auth.LoginResponse;
+import com.flarefitness.backend.dto.auth.OtpRequest;
 import com.flarefitness.backend.dto.auth.RegisterRequest;
 import com.flarefitness.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,10 +43,22 @@ public class AuthController {
         return ResponseEntity.ok(authService.register(request));
     }
 
+    @PostMapping("/register/otp")
+    public ResponseEntity<AuthMessageResponse> sendRegisterOtp(@Valid @RequestBody OtpRequest request) {
+        authService.sendRegisterOtp(request);
+        return ResponseEntity.ok(new AuthMessageResponse("Mã OTP đăng ký đã được gửi đến email."));
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<AuthMessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request);
         return ResponseEntity.ok(new AuthMessageResponse("Đặt lại mật khẩu thành công. Bạn có thể đăng nhập lại ngay."));
+    }
+
+    @PostMapping("/forgot-password/otp")
+    public ResponseEntity<AuthMessageResponse> sendForgotPasswordOtp(@Valid @RequestBody OtpRequest request) {
+        authService.sendForgotPasswordOtp(request);
+        return ResponseEntity.ok(new AuthMessageResponse("Mã OTP đặt lại mật khẩu đã được gửi đến email."));
     }
 
     @GetMapping("/me")

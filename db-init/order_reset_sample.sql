@@ -13,13 +13,13 @@ INSERT INTO tbl_don_hang (
 VALUES
     (
         'sample-order-001', 'DH-20260423-1001', '2026-04-22', 'customer-001', 'user-customer-001',
-        'Nguyen Van A', '0901234567', 'Da giao', 'Chuyen khoan', 1, 3160000, 0, 0,
+        'Nguyen Van A', '0901234567', 'Da giao', 'COD', 1, 3160000, 0, 0,
         '123 Le Loi, Phuong Hai Chau, Da Nang', 'Don mau giao thanh cong',
         '2026-04-22 09:15:00', '2026-04-22 09:15:00', 0
     ),
     (
         'sample-order-002', 'DH-20260423-1002', '2026-04-22', 'customer-002', 'user-customer-002',
-        'Tran Thi B', '0987654321', 'Da xac nhan', 'The noi dia', 1, 5390000, 0, 0,
+        'Tran Thi B', '0987654321', 'Da xac nhan', 'COD', 0, 5390000, 0, 0,
         '456 Nguyen Van Linh, Phuong Thanh Khe, Da Nang', 'Don mau da xac nhan',
         '2026-04-22 14:30:00', '2026-04-22 14:30:00', 0
     ),
@@ -67,13 +67,13 @@ INSERT INTO tbl_thanh_toan (
 )
 VALUES
     (
-        'sample-payment-001', 'sample-order-001', 'TXN-DH-20260423-1001', 'Chuyen khoan', 3160000, 'Thanh cong',
-        'VCB', NULL, '2026-04-22 09:17:00', 'Thanh toan thanh cong',
+        'sample-payment-001', 'sample-order-001', 'COD-DH-20260423-1001', 'COD', 3160000, 'Thanh cong',
+        'Noi bo', NULL, '2026-04-22 09:17:00', 'Nhan vien da xac nhan thu tien COD',
         '2026-04-22 09:17:00', '2026-04-22 09:17:00'
     ),
     (
-        'sample-payment-002', 'sample-order-002', 'CARD-DH-20260423-1002', 'The noi dia', 5390000, 'Thanh cong',
-        'Napas', NULL, '2026-04-22 14:32:00', 'Thanh toan thanh cong',
+        'sample-payment-002', 'sample-order-002', 'COD-DH-20260423-1002', 'COD', 5390000, 'Cho thu tien',
+        'Noi bo', NULL, NULL, 'Cho giao hang va thu tien tu nguoi nhan',
         '2026-04-22 14:32:00', '2026-04-22 14:32:00'
     ),
     (
@@ -85,7 +85,7 @@ VALUES
 UPDATE tbl_khach_hang
 SET tong_chi_tieu = CASE id
     WHEN 'customer-001' THEN 3160000
-    WHEN 'customer-002' THEN 5390000
+    WHEN 'customer-002' THEN 0
     ELSE 0
 END
 WHERE id IN ('customer-001', 'customer-002', 'customer-003');

@@ -14,6 +14,8 @@ services:
       - ./db-init/schema_full.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./db-init/product_images_seed.sql:/docker-entrypoint-initdb.d/02-product-images.sql:ro
       - ./db-init/analytics_schema.sql:/docker-entrypoint-initdb.d/03-analytics-schema.sql:ro
+      - ./db-init/support_chat_schema.sql:/docker-entrypoint-initdb.d/04-support-chat.sql:ro
+      - ./db-init/password_reset_to_username.sql:/docker-entrypoint-initdb.d/05-password-reset.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
       interval: 10s
@@ -35,6 +37,9 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       APP_JWT_SECRET: replace-this-secret-with-at-least-32-characters
       APP_CORS_ALLOWED_ORIGINS: http://localhost,http://127.0.0.1
+      APP_MAIL_USERNAME: Hoangngocnguyen2006@gmail.com
+      APP_MAIL_FROM: Hoangngocnguyen2006@gmail.com
+      APP_MAIL_PASSWORD: ${APP_MAIL_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy

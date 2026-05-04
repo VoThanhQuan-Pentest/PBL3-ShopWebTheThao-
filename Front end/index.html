@@ -140,6 +140,55 @@
             </div>
 
             <div id="products-mgmt" class="tab-content active">
+                <div class="workspace-table-card product-filter-card">
+                    <div class="workspace-card-head">
+                        <div>
+                            <h3>Tìm và lọc sản phẩm</h3>
+                            <p class="customer-card-meta">Tìm nhanh theo SKU, tên sản phẩm, thương hiệu hoặc danh mục. Bạn cũng có thể lọc theo giá bán và số lượng tồn kho.</p>
+                        </div>
+                        <span id="staff-product-filter-count" class="workspace-chip">0 sản phẩm</span>
+                    </div>
+                    <div class="workspace-toolbar product-toolbar">
+                        <div class="workspace-toolbar-search form-group">
+                            <label for="staff-product-search-input">Tìm kiếm sản phẩm</label>
+                            <input id="staff-product-search-input" class="workspace-inline-input" type="search" placeholder="Nhập SKU / tên / thương hiệu / danh mục">
+                        </div>
+                        <div class="workspace-toolbar-inline product-toolbar-inline">
+                            <div class="form-group">
+                                <label for="staff-product-brand-filter">Thương hiệu</label>
+                                <select id="staff-product-brand-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả thương hiệu</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-product-category-filter">Danh mục</label>
+                                <select id="staff-product-category-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả danh mục</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-product-price-filter">Giá bán</label>
+                                <select id="staff-product-price-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả mức giá</option>
+                                    <option value="under-500k">Dưới 500.000đ</option>
+                                    <option value="500k-1m">500.000đ - 1.000.000đ</option>
+                                    <option value="1m-3m">1.000.000đ - 3.000.000đ</option>
+                                    <option value="above-3m">Trên 3.000.000đ</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-product-stock-filter">Tồn kho</label>
+                                <select id="staff-product-stock-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả tồn kho</option>
+                                    <option value="out-of-stock">Hết hàng</option>
+                                    <option value="low-stock">1 - 10 sản phẩm</option>
+                                    <option value="medium-stock">11 - 30 sản phẩm</option>
+                                    <option value="high-stock">Trên 30 sản phẩm</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="action-bar">
                     <button id="add-product-btn" class="add-btn" type="button"><i class="fa-solid fa-plus"></i> Thêm sản phẩm mới</button>
                 </div>
@@ -546,17 +595,6 @@
                     </div>
 
                     <div id="cart-items" class="cart-items"></div>
-
-                    <section id="cart-recommendations-section" class="product-detail-section hidden">
-                        <div class="workspace-card-head">
-                            <div>
-                                <p class="catalog-eyebrow small-eyebrow">Gợi ý mua kèm</p>
-                                <h3>Bạn có thể cần thêm</h3>
-                            </div>
-                            <span class="workspace-chip">Từ hồ sơ hành vi + giỏ hàng</span>
-                        </div>
-                        <div id="cart-recommendations-grid" class="product-grid personalized-product-grid"></div>
-                    </section>
                 </div>
 
                 <aside class="cart-summary-panel">
@@ -598,6 +636,17 @@
                     </div>
                 </aside>
             </div>
+
+            <section id="cart-recommendations-section" class="product-detail-section hidden">
+                <div class="workspace-card-head">
+                    <div>
+                        <p class="catalog-eyebrow small-eyebrow">Gợi ý mua kèm</p>
+                        <h3>Bạn có thể cần thêm</h3>
+                    </div>
+                    <span class="workspace-chip">Từ hồ sơ hành vi + giỏ hàng</span>
+                </div>
+                <div id="cart-recommendations-grid" class="product-grid personalized-product-grid"></div>
+            </section>
         </section>
 
         <section id="wishlist-view" class="wishlist-view hidden">
@@ -727,10 +776,6 @@
                                 <label class="text-14" for="address-phone">Số điện thoại</label>
                                 <input id="address-phone" type="text" required>
                             </div>
-                            <div class="form-group form-group-full">
-                                <label class="text-14" for="address-line">Địa chỉ chi tiết</label>
-                                <input id="address-line" type="text" required placeholder="Số nhà, tên đường...">
-                            </div>
                             <div class="form-group">
                                 <label class="text-14" for="address-city">Tỉnh/Thành phố</label>
                                 <select id="address-city" required></select>
@@ -743,8 +788,17 @@
                                 <label class="text-14" for="address-ward">Phường/Xã</label>
                                 <select id="address-ward" required></select>
                             </div>
+                            <div class="form-group">
+                                <label class="text-14" for="address-street">Tên đường</label>
+                                <select id="address-street" required disabled></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="address-house-number">Số nhà / chi tiết</label>
+                                <input id="address-house-number" type="text" required placeholder="Ví dụ: 123, hẻm 4...">
+                                <input id="address-line" type="hidden">
+                            </div>
                             <div class="form-group form-group-full">
-                                <p class="address-admin-note">Danh sách tỉnh/thành và phường/xã dùng theo bộ dữ liệu hành chính mới của Việt Nam. Từ 01/07/2025, địa chỉ chính thức dùng mô hình 2 cấp nên ô Quận/Huyện được giữ để tương thích biểu mẫu cũ.</p>
+                                <p class="address-admin-note">Danh sách tỉnh/thành và phường/xã dùng theo bộ dữ liệu hành chính mới của Việt Nam. Tên đường được gợi ý theo tỉnh/phường đã chọn để hạn chế nhập sai khu vực; dữ liệu đường là bộ mẫu phục vụ demo nên cần bổ sung thêm nếu triển khai thật.</p>
                             </div>
                             <div class="form-group form-group-full">
                                 <label class="text-14" for="address-note">Ghi chú</label>
@@ -800,23 +854,25 @@
             <p class="text-14">Flare Fitness - Dụng cụ và phụ kiện thể thao</p>
             <p class="text-14"><span class="text-bold">Địa chỉ: </span>123 Đường ABC, Phường XYZ, Thành phố Đà Nẵng</p>
             <p class="text-14 text-bold">Điện thoại: <a href="tel:0935250037">0935250037</a></p>
-            <p class="text-14 text-bold">Email: <a href="mailto:flarefitness@gmail.com">flarefitness@gmail.com</a></p>
+            <p class="text-14 text-bold">Email: <a href="mailto:Hoangngocnguyen2006@gmail.com">Hoangngocnguyen2006@gmail.com</a></p>
         </div>
         <div id="about">
             <h4 class="text-18">Về chúng tôi</h4>
             <ul id="about_list">
-                <li><a href="#">Trang chủ</a></li>
-                <li><a href="#">Giới thiệu</a></li>
-                <li><a href="#">Sản phẩm</a></li>
+                <li><a href="#" data-footer-action="home">Trang chủ</a></li>
+                <li><a href="#" data-footer-action="products">Sản phẩm</a></li>
             </ul>
         </div>
         <div id="policies">
             <h4 class="text-18">Chính sách khách hàng</h4>
             <ul id="policies_list">
-                <li><a href="#">Chính sách bảo mật</a></li>
-                <li><a href="#">Chính sách vận chuyển</a></li>
-                <li><a href="#">Chính sách đổi trả</a></li>
-                <li><a href="#">Quy định sử dụng</a></li>
+                <li><a href="#" data-policy="privacy">Chính sách bảo mật</a></li>
+                <li><a href="#" data-policy="shipping">Chính sách vận chuyển</a></li>
+                <li><a href="#" data-policy="return">Chính sách đổi trả / hoàn tiền</a></li>
+                <li><a href="#" data-policy="payment">Chính sách thanh toán COD</a></li>
+                <li><a href="#" data-policy="inspection">Chính sách kiểm hàng</a></li>
+                <li><a href="#" data-policy="warranty">Chính sách bảo hành</a></li>
+                <li><a href="#" data-policy="terms">Quy định sử dụng</a></li>
             </ul>
         </div>
         <div id="social">
@@ -831,6 +887,15 @@
         <div id="footer_divider"></div>
         <p id="copyright" class="text-14">&copy; 2026 Flare Fitness. All rights reserved.</p>
     </footer>
+
+    <div id="policy-overlay" class="overlay hidden">
+        <div class="login-modal wide-modal policy-modal">
+            <button id="close-policy" class="close-btn" type="button">&times;</button>
+            <p class="catalog-eyebrow">Chính sách khách hàng</p>
+            <h2 id="policy-title" class="text-24 text-bold">Chính sách</h2>
+            <div id="policy-content" class="policy-content"></div>
+        </div>
+    </div>
 
     <div id="login-overlay" class="overlay hidden">
         <div class="login-modal">
@@ -874,23 +939,7 @@
                 </div>
                 <div class="form-group">
                     <label for="register-phone" class="text-14">Số điện thoại</label>
-                    <input type="text" id="register-phone" required placeholder="09xxxxxxxx">
-                </div>
-                <div class="form-group">
-                    <label for="register-address-line" class="text-14">Địa chỉ chi tiết</label>
-                    <input type="text" id="register-address-line" required placeholder="Số nhà, tên đường...">
-                </div>
-                <div class="form-group">
-                    <label for="register-address-city" class="text-14">Tỉnh/Thành phố</label>
-                    <select id="register-address-city" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="register-address-district" class="text-14">Quận/Huyện</label>
-                    <select id="register-address-district" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="register-address-ward" class="text-14">Phường/Xã</label>
-                    <select id="register-address-ward" required></select>
+                    <input type="tel" id="register-phone" required inputmode="tel" pattern="(0|\+84)(3|5|7|8|9)[0-9]{8}" placeholder="0935250037">
                 </div>
                 <div class="form-group">
                     <label for="register-password" class="text-14">Mật khẩu</label>
@@ -902,10 +951,32 @@
                 </div>
                 <p id="register-error" class="error-msg hidden"></p>
                 <div class="auth-helper-row">
-                    <span class="auth-helper-text">Đã có tài khoản?</span>
-                    <button id="back-to-login-from-register" class="auth-helper-link" type="button">Quay lại đăng nhập</button>
+                    <button id="back-to-login-from-register" class="auth-helper-link" type="button">Đã có tài khoản?</button>
                 </div>
                 <button type="submit" class="login-submit-btn text-bold">Đăng ký</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="register-otp-overlay" class="overlay hidden">
+        <div class="login-modal">
+            <button id="close-register-otp" class="close-btn" type="button">&times;</button>
+            <h2 class="text-24 text-bold">Xác nhận email</h2>
+            <p class="otp-confirm-copy">
+                Mã OTP 6 chữ số đã được gửi đến <strong id="register-otp-email">email của bạn</strong>.
+                Vui lòng nhập mã để hoàn tất đăng ký tài khoản.
+            </p>
+            <form id="register-otp-form">
+                <div class="form-group">
+                    <label for="register-otp-code" class="text-14">Mã OTP</label>
+                    <input type="text" id="register-otp-code" required maxlength="6" inputmode="numeric" autocomplete="one-time-code" placeholder="Nhập mã 6 số">
+                </div>
+                <p id="register-otp-error" class="error-msg hidden"></p>
+                <div class="auth-helper-row">
+                    <button id="back-to-register-info" class="auth-helper-link" type="button">Sửa thông tin đăng ký</button>
+                    <button id="resend-register-otp" class="auth-helper-link" type="button">Gửi lại OTP</button>
+                </div>
+                <button type="submit" class="login-submit-btn text-bold">Xác nhận và tạo tài khoản</button>
             </form>
         </div>
     </div>
@@ -923,6 +994,13 @@
                     <label for="forgot-email" class="text-14">Email đăng ký</label>
                     <input type="email" id="forgot-email" required placeholder="email@example.com">
                 </div>
+                <div class="form-group otp-form-group">
+                    <label for="forgot-otp" class="text-14">Mã OTP email</label>
+                    <div class="otp-input-row">
+                        <input type="text" id="forgot-otp" required maxlength="6" inputmode="numeric" placeholder="Nhập mã 6 số">
+                        <button id="send-forgot-otp" class="secondary-btn text-bold" type="button">Gửi OTP</button>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="forgot-new-password" class="text-14">Mật khẩu mới</label>
                     <input type="password" id="forgot-new-password" required placeholder="Đặt lại mật khẩu mới">
@@ -933,8 +1011,7 @@
                 </div>
                 <p id="forgot-password-error" class="error-msg hidden"></p>
                 <div class="auth-helper-row">
-                    <span class="auth-helper-text">Nhớ mật khẩu rồi?</span>
-                    <button id="back-to-login-from-forgot" class="auth-helper-link" type="button">Quay lại đăng nhập</button>
+                    <button id="back-to-login-from-forgot" class="auth-helper-link" type="button">Đã nhớ mật khẩu?</button>
                 </div>
                 <button type="submit" class="login-submit-btn text-bold">Đặt lại mật khẩu</button>
             </form>
@@ -956,7 +1033,7 @@
                 </div>
                 <div class="form-group">
                     <label class="text-14">Số điện thoại</label>
-                    <input type="text" id="edit-phone" placeholder="Cập nhật số điện thoại...">
+                    <input type="tel" id="edit-phone" inputmode="tel" pattern="(0|\+84)(3|5|7|8|9)[0-9]{8}" placeholder="0935250037">
                 </div>
                 <button type="submit" class="login-submit-btn text-bold">Lưu thay đổi</button>
             </form>
@@ -1105,7 +1182,7 @@
                     <p class="catalog-eyebrow">Hỗ trợ khách hàng</p>
                     <h3>Tư vấn trực tuyến</h3>
                 </div>
-                <button id="support-chat-close" class="close-btn compact" type="button">&times;</button>
+                <button id="support-chat-close" class="close-btn compact support-chat-close" type="button" aria-label="Tắt khung tư vấn" title="Tắt khung tư vấn">&times;</button>
             </div>
             <div id="support-chat-status" class="support-chat-status">Nhân viên sẽ phản hồi trực tiếp trong cuộc trò chuyện này.</div>
             <div id="support-chat-messages" class="support-chat-messages"></div>

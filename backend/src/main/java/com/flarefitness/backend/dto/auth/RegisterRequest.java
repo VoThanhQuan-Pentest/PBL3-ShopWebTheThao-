@@ -17,7 +17,10 @@ public record RegisterRequest(
         @Size(max = 150, message = "Email không được vượt quá 150 ký tự.")
         String email,
         @NotBlank(message = "Số điện thoại là bắt buộc.")
-        @Size(max = 30, message = "Số điện thoại không được vượt quá 30 ký tự.")
+        @Pattern(
+                regexp = "^(0|\\+84)(3|5|7|8|9)\\d{8}$",
+                message = "Số điện thoại phải là số di động Việt Nam hợp lệ, ví dụ 0935250037 hoặc +84935250037."
+        )
         String sdt,
         @NotBlank(message = "Mật khẩu là bắt buộc.")
         @Size(min = 6, max = 255, message = "Mật khẩu phải có ít nhất 6 ký tự.")
@@ -27,6 +30,9 @@ public record RegisterRequest(
         )
         String password,
         @NotBlank(message = "Xác nhận mật khẩu là bắt buộc.")
-        String confirmPassword
+        String confirmPassword,
+        @NotBlank(message = "Mã OTP là bắt buộc.")
+        @Size(min = 6, max = 6, message = "Mã OTP phải gồm 6 chữ số.")
+        String otpCode
 ) {
 }

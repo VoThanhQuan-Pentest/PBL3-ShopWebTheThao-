@@ -22,6 +22,7 @@ import com.flarefitness.backend.repository.UserRepository;
 import com.flarefitness.backend.repository.analytics.UserBehaviorEventRepository;
 import com.flarefitness.backend.repository.analytics.UserBehaviorProfileRepository;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -51,6 +53,7 @@ public class BehaviorAnalyticsService {
     private static final int DEFAULT_RECOMMENDATION_LIMIT = 8;
     private static final int DEFAULT_TOP_ITEMS_LIMIT = 8;
     private static final int DEFAULT_PROFILE_TOP_LIMIT = 5;
+    private static final Duration BEHAVIOR_RECALCULATION_INTERVAL = Duration.ofHours(2);
 
     private final UserBehaviorEventRepository eventRepository;
     private final UserBehaviorProfileRepository profileRepository;
@@ -58,6 +61,7 @@ public class BehaviorAnalyticsService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final ObjectMapper objectMapper;
+    private final Map<String, RecommendationCacheEntry> recommendationCache = new ConcurrentHashMap<>();
 
     public BehaviorAnalyticsService(
             UserBehaviorEventRepository eventRepository,
@@ -108,9 +112,7 @@ public class BehaviorAnalyticsService {
         event.setMetadataJson(writeJson(request.metadata()));
         eventRepository.save(event);
 
-        if (userId != null) {
-            rebuildUserProfile(userId);
-        }
+        rebuildUserProfileIfDue(userId, event.getCreatedAt());
 
         return new BehaviorEventResponse("RECORDED", sessionId, event.getCreatedAt());
     }
@@ -154,6 +156,19 @@ public class BehaviorAnalyticsService {
         return profileRepository.save(profile);
     }
 
+    private void rebuildUserProfileIfDue(String userId, LocalDateTime now) {
+        String safeUserId = trimToNull(userId);
+        if (safeUserId == null) {
+            return;
+        }
+
+        LocalDateTime threshold = (now != null ? now : LocalDateTime.now()).minus(BEHAVIOR_RECALCULATION_INTERVAL);
+        UserBehaviorProfile profile = profileRepository.findById(safeUserId).orElse(null);
+        if (profile == null || profile.getUpdatedAt() == null || profile.getUpdatedAt().isBefore(threshold)) {
+            rebuildUserProfile(safeUserId);
+        }
+    }
+
     @Transactional(readOnly = true)
     public List<ProductResponse> getRecommendations(
             Authentication authentication,
@@ -166,6 +181,16 @@ public class BehaviorAnalyticsService {
         int safeLimit = Math.min(Math.max(limit == null ? DEFAULT_RECOMMENDATION_LIMIT : limit, 1), 16);
         String userId = resolveUserId(authentication);
         String normalizedSessionId = trimToNull(sessionId);
+        String normalizedContext = trimToNull(context) != null ? trimToNull(context).toLowerCase(Locale.ROOT) : "home";
+        LocalDateTime now = LocalDateTime.now();
+        String cacheKey = buildRecommendationCacheKey(userId, normalizedSessionId, normalizedContext, productId, productIds, safeLimit);
+        RecommendationCacheEntry cachedEntry = recommendationCache.get(cacheKey);
+        if (cachedEntry != null && cachedEntry.expiresAt().isAfter(now)) {
+            return cachedEntry.products();
+        }
+        if (cachedEntry != null) {
+            recommendationCache.remove(cacheKey);
+        }
 
         BehaviorSnapshot snapshot = userId != null
                 ? buildSnapshot(eventRepository.findTop300ByUserIdOrderByCreatedAtDesc(userId))
@@ -174,7 +199,7 @@ public class BehaviorAnalyticsService {
                 : eventRepository.findTop300BySessionIdOrderByCreatedAtDesc(normalizedSessionId));
 
         Map<String, Long> popularityScores = buildWeightedProductMap(
-                eventRepository.findTop1500ByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime.now().minusDays(30)),
+                eventRepository.findTop1500ByCreatedAtAfterOrderByCreatedAtDesc(now.minusDays(30)),
                 60
         );
 
@@ -194,7 +219,6 @@ public class BehaviorAnalyticsService {
                     .forEach(excludedIds::add);
         }
 
-        String normalizedContext = trimToNull(context) != null ? trimToNull(context).toLowerCase(Locale.ROOT) : "home";
         List<ProductScore> scoredProducts = new ArrayList<>();
 
         for (Product product : products) {
@@ -243,13 +267,15 @@ public class BehaviorAnalyticsService {
             }
         }
 
-        return scoredProducts.stream()
+        List<ProductResponse> recommendations = scoredProducts.stream()
                 .sorted(Comparator.comparingLong(ProductScore::score).reversed()
                         .thenComparing(item -> item.product().getCreatedAt(), Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(safeLimit)
                 .map(ProductScore::product)
                 .map(this::toProductResponse)
                 .toList();
+        recommendationCache.put(cacheKey, new RecommendationCacheEntry(List.copyOf(recommendations), now.plus(BEHAVIOR_RECALCULATION_INTERVAL)));
+        return recommendations;
     }
 
     @Transactional(readOnly = true)
@@ -661,6 +687,34 @@ public class BehaviorAnalyticsService {
         return !order.getNgayDat().isBefore(fromDate) && !order.getNgayDat().isAfter(toDate);
     }
 
+    private String buildRecommendationCacheKey(
+            String userId,
+            String sessionId,
+            String context,
+            String productId,
+            List<String> productIds,
+            int limit
+    ) {
+        String principal = trimToNull(userId) != null
+                ? "user:" + trimToNull(userId)
+                : "session:" + Optional.ofNullable(trimToNull(sessionId)).orElse("anonymous");
+        String relatedProducts = productIds == null
+                ? ""
+                : productIds.stream()
+                .map(this::trimToNull)
+                .filter(Objects::nonNull)
+                .sorted()
+                .collect(Collectors.joining(","));
+
+        return String.join("|",
+                principal,
+                Optional.ofNullable(trimToNull(context)).orElse("home"),
+                "limit:" + limit,
+                "product:" + Optional.ofNullable(trimToNull(productId)).orElse(""),
+                "items:" + relatedProducts
+        );
+    }
+
     private ProductResponse toProductResponse(Product product) {
         return new ProductResponse(
                 product.getId(),
@@ -682,6 +736,9 @@ public class BehaviorAnalyticsService {
     }
 
     private record ProductScore(Product product, long score) {
+    }
+
+    private record RecommendationCacheEntry(List<ProductResponse> products, LocalDateTime expiresAt) {
     }
 
     private record BehaviorSnapshot(

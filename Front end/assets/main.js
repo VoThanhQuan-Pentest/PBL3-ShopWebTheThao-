@@ -8,31 +8,183 @@ document.addEventListener('DOMContentLoaded', () => {
     const ORDER_HISTORY_KEY = 'pbl3_order_history';
     const ORDER_DATA_RESET_VERSION = '2026-04-23-sample-orders-v1';
     const ANALYTICS_SESSION_KEY = 'pbl3_analytics_session';
+    const LOCAL_ANALYTICS_EVENTS_KEY = 'pbl3_local_behavior_events';
     const HOME_SHOWCASE_STORAGE_KEY = 'pbl3_home_showcase_visible';
+    const RECOMMENDATION_CACHE_KEY = 'pbl3_recommendation_cache_v1';
+    const RECOMMENDATION_CACHE_TTL_MS = 2 * 60 * 60 * 1000;
     const PASSWORD_RULE_MESSAGE = 'Mật khẩu phải có chữ hoa, chữ thường, chữ số và ký tự đặc biệt như @ hoặc #.';
+    const PAYMENT_STATUS_PENDING_COD = 'Chờ khách trả tiền khi nhận hàng';
+    const PAYMENT_STATUS_DELIVERED_WAITING_CONFIRMATION = 'Đã giao - chờ nhân viên xác nhận đã thu tiền';
+    const PAYMENT_STATUS_PAID = 'Thanh toán thành công';
+    const PAYMENT_STATUS_CANCELLED = 'Không ghi nhận thanh toán';
 
     const VOUCHER_KEY = 'pbl3_voucher';
+    const MANAGED_VOUCHERS_KEY = 'pbl3_managed_vouchers';
+    const MANAGED_VOUCHERS_VERSION_KEY = 'pbl3_managed_vouchers_version';
+    const MANAGED_VOUCHERS_VERSION = '2026-04-30-category-expiry-v1';
+    const VOUCHER_ASSIGNMENTS_KEY = 'pbl3_voucher_assignments';
+    const VOUCHER_ASSIGNMENTS_VERSION_KEY = 'pbl3_voucher_assignments_version';
+    const VOUCHER_ASSIGNMENTS_VERSION = '2026-04-30-account-vouchers-v1';
     const AVAILABLE_VOUCHERS = [
         {
             code: 'HOTDEAL10',
             label: 'Giảm 10%',
             percent: 0.10,
             minOrder: 600000,
-            maxDiscount: 120000
+            maxDiscount: 120000,
+            categories: ['Tất cả'],
+            expiresAt: '2026-06-30',
+            status: 'Hoạt động'
         },
         {
             code: 'SEAGAMES15',
             label: 'Giảm 15%',
             percent: 0.15,
             minOrder: 1200000,
-            maxDiscount: 220000
+            maxDiscount: 220000,
+            categories: ['Bóng đá', 'Bóng chuyền', 'Bóng rổ', 'Bóng bàn', 'Cầu lông'],
+            expiresAt: '2026-05-31',
+            status: 'Hoạt động'
         },
         {
             code: 'SPORT25',
             label: 'Giảm 25%',
             percent: 0.25,
             minOrder: 2000000,
-            maxDiscount: 350000
+            maxDiscount: 350000,
+            categories: ['Tất cả'],
+            expiresAt: '2026-07-31',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'FOOTBALL12',
+            label: 'Giảm 12% cho bóng đá',
+            percent: 0.12,
+            minOrder: 500000,
+            maxDiscount: 180000,
+            categories: ['Bóng đá'],
+            expiresAt: '2026-06-15',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'VOLLEY10',
+            label: 'Giảm 10% cho bóng chuyền',
+            percent: 0.10,
+            minOrder: 450000,
+            maxDiscount: 150000,
+            categories: ['Bóng chuyền'],
+            expiresAt: '2026-06-20',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'BASKET15',
+            label: 'Giảm 15% cho bóng rổ',
+            percent: 0.15,
+            minOrder: 800000,
+            maxDiscount: 240000,
+            categories: ['Bóng rổ'],
+            expiresAt: '2026-06-25',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'TABLE08',
+            label: 'Giảm 8% cho bóng bàn',
+            percent: 0.08,
+            minOrder: 400000,
+            maxDiscount: 120000,
+            categories: ['Bóng bàn'],
+            expiresAt: '2026-06-10',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'BADMINTON12',
+            label: 'Giảm 12% cho cầu lông',
+            percent: 0.12,
+            minOrder: 500000,
+            maxDiscount: 170000,
+            categories: ['Cầu lông'],
+            expiresAt: '2026-06-18',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'RUNGYM18',
+            label: 'Giảm 18% cho chạy bộ và tập gym',
+            percent: 0.18,
+            minOrder: 700000,
+            maxDiscount: 260000,
+            categories: ['Chạy bộ', 'Tập gym'],
+            expiresAt: '2026-07-15',
+            status: 'Hoạt động'
+        },
+        {
+            code: 'APRILSALE',
+            label: 'Ưu đãi tháng 4 đã hết hạn',
+            percent: 0.20,
+            minOrder: 500000,
+            maxDiscount: 200000,
+            categories: ['Tất cả'],
+            expiresAt: '2026-04-20',
+            status: 'Hoạt động'
+        }
+    ];
+
+    const ADDRESS_STREET_RULES = [
+        {
+            provinces: ['Đà Nẵng'],
+            wards: ['Hải Châu', 'Thạch Thang', 'Hòa Cường', 'Thanh Bình', 'Phước Ninh'],
+            streets: ['Bạch Đằng', 'Trần Phú', 'Lê Lợi', 'Hùng Vương', 'Nguyễn Chí Thanh', 'Hoàng Diệu', 'Ông Ích Khiêm', 'Nguyễn Văn Linh']
+        },
+        {
+            provinces: ['Đà Nẵng'],
+            wards: ['Thanh Khê', 'Xuân Hà', 'Tam Thuận', 'Chính Gián', 'An Khê'],
+            streets: ['Nguyễn Tất Thành', 'Điện Biên Phủ', 'Hà Huy Tập', 'Lê Độ', 'Trần Cao Vân', 'Nguyễn Tri Phương', 'Dũng Sĩ Thanh Khê']
+        },
+        {
+            provinces: ['Đà Nẵng'],
+            wards: ['Sơn Trà', 'An Hải', 'Mân Thái', 'Thọ Quang', 'Nại Hiên Đông'],
+            streets: ['Ngô Quyền', 'Võ Nguyên Giáp', 'Hoàng Sa', 'Lê Văn Duyệt', 'Nguyễn Công Trứ', 'Phạm Văn Đồng', 'Hồ Nghinh']
+        },
+        {
+            provinces: ['Đà Nẵng'],
+            wards: ['Cẩm Lệ', 'Hòa Xuân', 'Khuê Trung', 'Hòa Thọ', 'Hòa An'],
+            streets: ['Cách Mạng Tháng Tám', 'Nguyễn Hữu Thọ', 'Lê Đại Hành', 'Ông Ích Đường', 'Trường Sơn', 'Võ Chí Công']
+        },
+        {
+            provinces: ['Đà Nẵng'],
+            streets: ['2 Tháng 9', '30 Tháng 4', 'Nguyễn Văn Linh', 'Nguyễn Tất Thành', 'Điện Biên Phủ', 'Lê Duẩn', 'Trường Chinh', 'Tôn Đức Thắng']
+        },
+        {
+            provinces: ['Hà Nội'],
+            wards: ['Hoàn Kiếm', 'Hàng Bạc', 'Hàng Bông', 'Cửa Nam', 'Tràng Tiền'],
+            streets: ['Hàng Bài', 'Tràng Tiền', 'Đinh Tiên Hoàng', 'Lý Thường Kiệt', 'Hai Bà Trưng', 'Phan Chu Trinh', 'Bà Triệu']
+        },
+        {
+            provinces: ['Hà Nội'],
+            wards: ['Cầu Giấy', 'Dịch Vọng', 'Quan Hoa', 'Yên Hòa', 'Nghĩa Đô'],
+            streets: ['Xuân Thủy', 'Cầu Giấy', 'Trần Thái Tông', 'Duy Tân', 'Trung Kính', 'Nguyễn Phong Sắc', 'Hoàng Quốc Việt']
+        },
+        {
+            provinces: ['Hà Nội'],
+            wards: ['Đống Đa', 'Láng', 'Ô Chợ Dừa', 'Kim Liên', 'Văn Miếu'],
+            streets: ['Tôn Đức Thắng', 'Nguyễn Lương Bằng', 'Tây Sơn', 'Chùa Bộc', 'Xã Đàn', 'Phạm Ngọc Thạch', 'Giảng Võ']
+        },
+        {
+            provinces: ['Hà Nội'],
+            streets: ['Giải Phóng', 'Nguyễn Trãi', 'Láng Hạ', 'Kim Mã', 'Phạm Văn Đồng', 'Võ Chí Công', 'Trần Duy Hưng', 'Lê Văn Lương']
+        },
+        {
+            provinces: ['Hồ Chí Minh', 'TP Hồ Chí Minh', 'Thành phố Hồ Chí Minh'],
+            wards: ['Bến Nghé', 'Sài Gòn', 'Bến Thành', 'Tân Định', 'Cầu Ông Lãnh'],
+            streets: ['Đồng Khởi', 'Nguyễn Huệ', 'Lê Lợi', 'Hai Bà Trưng', 'Nam Kỳ Khởi Nghĩa', 'Pasteur', 'Lê Thánh Tôn']
+        },
+        {
+            provinces: ['Hồ Chí Minh', 'TP Hồ Chí Minh', 'Thành phố Hồ Chí Minh'],
+            wards: ['Phú Nhuận', 'Gia Định', 'Tân Sơn Hòa', 'Tân Sơn Nhất'],
+            streets: ['Phan Đăng Lưu', 'Hoàng Văn Thụ', 'Nguyễn Văn Trỗi', 'Phan Xích Long', 'Trường Sa', 'Nguyễn Kiệm']
+        },
+        {
+            provinces: ['Hồ Chí Minh', 'TP Hồ Chí Minh', 'Thành phố Hồ Chí Minh'],
+            streets: ['Võ Văn Kiệt', 'Điện Biên Phủ', 'Nguyễn Văn Linh', 'Cách Mạng Tháng Tám', 'Trường Chinh', 'Xa lộ Hà Nội', 'Phạm Văn Đồng']
         }
     ];
 
@@ -383,10 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addressWardSelect = document.getElementById('address-ward');
     const addressDistrictSelect = document.getElementById('address-district');
     const addressCitySelect = document.getElementById('address-city');
-    const registerAddressLineInput = document.getElementById('register-address-line');
-    const registerAddressWardSelect = document.getElementById('register-address-ward');
-    const registerAddressDistrictSelect = document.getElementById('register-address-district');
-    const registerAddressCitySelect = document.getElementById('register-address-city');
+    const addressStreetSelect = document.getElementById('address-street');
+    const addressHouseNumberInput = document.getElementById('address-house-number');
     const ordersTableHeader = document.getElementById('orders-table-header');
     const ordersEmptyState = document.getElementById('orders-empty-state');
     const ordersList = document.getElementById('orders-list');
@@ -433,15 +583,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const loginOverlay = document.getElementById('login-overlay');
     const registerOverlay = document.getElementById('register-overlay');
+    const registerOtpOverlay = document.getElementById('register-otp-overlay');
     const forgotPasswordOverlay = document.getElementById('forgot-password-overlay');
     const profileOverlay = document.getElementById('profile-overlay');
     const passwordOverlay = document.getElementById('password-overlay');
+    const policyOverlay = document.getElementById('policy-overlay');
     const productOverlay = document.getElementById('product-overlay');
     const cartItemOverlay = document.getElementById('cart-item-overlay');
-    const overlays = [loginOverlay, registerOverlay, forgotPasswordOverlay, profileOverlay, passwordOverlay, productOverlay, cartItemOverlay];
+    const overlays = [loginOverlay, registerOverlay, registerOtpOverlay, forgotPasswordOverlay, profileOverlay, passwordOverlay, policyOverlay, productOverlay, cartItemOverlay];
+    const policyTitle = document.getElementById('policy-title');
+    const policyContent = document.getElementById('policy-content');
 
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const registerOtpForm = document.getElementById('register-otp-form');
     const forgotPasswordForm = document.getElementById('forgot-password-form');
     const profileForm = document.getElementById('profile-form');
     const passwordForm = document.getElementById('password-form');
@@ -470,6 +625,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const productError = document.getElementById('product-error');
     const loginError = document.getElementById('login-error');
     const registerError = document.getElementById('register-error');
+    const registerOtpError = document.getElementById('register-otp-error');
+    const registerOtpEmail = document.getElementById('register-otp-email');
     const forgotPasswordError = document.getElementById('forgot-password-error');
     const passError = document.getElementById('pass-error');
     const cartItemForm = document.getElementById('cart-item-form');
@@ -490,8 +647,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const openForgotPasswordButton = document.getElementById('open-forgot-password');
     const backToLoginFromRegisterButton = document.getElementById('back-to-login-from-register');
     const backToLoginFromForgotButton = document.getElementById('back-to-login-from-forgot');
+    const backToRegisterInfoButton = document.getElementById('back-to-register-info');
+    const resendRegisterOtpButton = document.getElementById('resend-register-otp');
 
     let token = localStorage.getItem(TOKEN_KEY) || '';
+    let pendingRegisterPayload = null;
     let analyticsSessionId = ensureAnalyticsSessionId();
     let currentUser = normalizeUserProfile(readStorage(USER_KEY));
     let allProducts = [];
@@ -516,10 +676,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCheckoutAddressId = '';
     let administrativeUnitsCache = [];
     let administrativeUnitsPromise = null;
+    let productRenderToken = 0;
+    let pendingProductContainerClearTimer = null;
     let personalizedHomeProducts = [];
     let homeShowcaseProducts = [];
     let homeShowcaseIndex = 0;
     let homeShowcaseTimer = null;
+    let homeShowcaseResetTimer = null;
+    let homeShowcaseRenderSignature = '';
+    let personalizedHomeRenderSignature = '';
+    let bodyRepairTimer = null;
+    let centeredMessageTimer = null;
     let homePersonalizedPriceRange = 'all';
     let homePersonalizedType = 'all';
     let homePersonalizedBrand = 'all';
@@ -530,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let homeRecommendationSignature = '';
     let cartRecommendationSignature = '';
     let detailRecommendationSignature = '';
+    let recommendationFetchPromises = new Map();
     let adminBehaviorOverview = null;
     let adminBehaviorOverviewError = '';
     let trackedPageContext = {
@@ -565,6 +733,13 @@ document.addEventListener('DOMContentLoaded', () => {
             userDropdown.classList.toggle('hidden');
         });
 
+        userDropdown?.addEventListener('click', event => {
+            event.stopPropagation();
+            if (event.target.closest('a')) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+
         cartLink.addEventListener('click', event => {
             event.preventDefault();
             openCartView();
@@ -578,6 +753,37 @@ document.addEventListener('DOMContentLoaded', () => {
         logo.addEventListener('click', event => {
             event.preventDefault();
             goToHomePage();
+        });
+
+        document.getElementById('about_list')?.addEventListener('click', event => {
+            const actionLink = event.target.closest('[data-footer-action]');
+            if (!actionLink) {
+                return;
+            }
+
+            event.preventDefault();
+            if (actionLink.dataset.footerAction === 'home') {
+                goToHomePage();
+                return;
+            }
+
+            if (actionLink.dataset.footerAction === 'products') {
+                closeMegaMenu();
+                currentView = 'catalog';
+                resetCatalogState({ clearQuery: true, skipRender: true });
+                renderCatalog();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        document.getElementById('policies_list')?.addEventListener('click', event => {
+            const policyLink = event.target.closest('[data-policy]');
+            if (!policyLink) {
+                return;
+            }
+
+            event.preventDefault();
+            openPolicyModal(policyLink.dataset.policy);
         });
 
         catalogTrigger.addEventListener('click', event => {
@@ -656,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (favoriteButton) {
                 event.preventDefault();
                 toggleWishlistProduct(favoriteButton.dataset.productId);
-                renderHomeSaleShowcase();
+                syncHomeShowcaseWishlistButtons();
                 return;
             }
 
@@ -681,7 +887,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             homeShowcaseIndex = Number(dot.dataset.homeSlide || 0);
-            renderHomeSaleShowcase();
+            clearHomeShowcaseLoopReset();
+            syncHomeShowcasePosition();
             startHomeShowcaseRotation();
         });
 
@@ -785,7 +992,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             overlays.forEach(overlay => {
                 if (event.target === overlay) {
-                    closeOverlay(overlay);
+                    if (!isRegisterFlowOverlay(overlay)) {
+                        closeOverlay(overlay);
+                    }
                 }
             });
         });
@@ -794,7 +1003,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (event.key === 'Escape') {
                 closeSearchSuggestions();
                 closeMegaMenu();
-                overlays.forEach(overlay => closeOverlay(overlay));
+                overlays.forEach(overlay => {
+                    if (!isRegisterFlowOverlay(overlay)) {
+                        closeOverlay(overlay);
+                    }
+                });
                 userDropdown.classList.add('hidden');
             }
         });
@@ -809,6 +1022,9 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => {
                 const overlay = button.closest('.overlay');
                 if (overlay) {
+                    if (isRegisterFlowOverlay(overlay)) {
+                        resetPendingRegisterState();
+                    }
                     closeOverlay(overlay);
                 }
             });
@@ -901,8 +1117,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         openRegisterButton.addEventListener('click', () => {
             registerForm.reset();
+            registerOtpForm?.reset();
             registerError.classList.add('hidden');
-            void syncRegisterAddressSelects();
+            hideInlineError(registerOtpError);
+            pendingRegisterPayload = null;
             switchAuthOverlay(registerOverlay);
         });
 
@@ -912,8 +1130,45 @@ document.addEventListener('DOMContentLoaded', () => {
             switchAuthOverlay(forgotPasswordOverlay);
         });
 
+        document.getElementById('send-forgot-otp')?.addEventListener('click', async () => {
+            await sendOtpEmail({
+                endpoint: '/auth/forgot-password/otp',
+                errorBox: forgotPasswordError,
+                button: document.getElementById('send-forgot-otp'),
+                payload: {
+                    username: document.getElementById('forgot-username').value.trim(),
+                    email: document.getElementById('forgot-email').value.trim()
+                },
+                successMessage: 'Mã OTP đặt lại mật khẩu đã được gửi đến email của bạn.'
+            });
+        });
+
+        backToRegisterInfoButton?.addEventListener('click', () => {
+            hideInlineError(registerOtpError);
+            switchAuthOverlay(registerOverlay);
+        });
+
+        resendRegisterOtpButton?.addEventListener('click', async () => {
+            if (!pendingRegisterPayload) {
+                showInlineError(registerOtpError, 'Không tìm thấy thông tin đăng ký. Vui lòng nhập lại.');
+                return;
+            }
+
+            await sendOtpEmail({
+                endpoint: '/auth/register/otp',
+                errorBox: registerOtpError,
+                button: resendRegisterOtpButton,
+                payload: {
+                    username: pendingRegisterPayload.username,
+                    email: pendingRegisterPayload.email
+                },
+                successMessage: 'Mã OTP mới đã được gửi đến email của bạn.'
+            });
+        });
+
         backToLoginFromRegisterButton.addEventListener('click', () => {
             loginError.classList.add('hidden');
+            resetPendingRegisterState();
             switchAuthOverlay(loginOverlay);
         });
 
@@ -961,8 +1216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addAddressBtn.addEventListener('click', () => openAddressForm());
         cancelAddressEditBtn.addEventListener('click', closeAddressForm);
         addressCitySelect.addEventListener('change', handleAddressProvinceChange);
-        registerAddressCitySelect?.addEventListener('change', handleRegisterProvinceChange);
-
+        addressWardSelect?.addEventListener('change', () => populateStreetOptions());
         addressForm.addEventListener('submit', event => {
             event.preventDefault();
             saveAddressFromForm();
@@ -1026,6 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginForm.reset();
                 updateAuthUI();
                 await loadProducts();
+                await promptCustomerAddressIfMissing();
             } catch (error) {
                 loginError.textContent = error.message;
                 loginError.classList.remove('hidden');
@@ -1038,7 +1293,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const registerPassword = document.getElementById('register-password').value;
             const registerConfirmPassword = document.getElementById('register-confirm-password').value;
-            const registerAddress = getRegisterAddressPayload();
+            const submitButton = registerForm.querySelector('button[type="submit"]');
 
             if (!isStrongPassword(registerPassword)) {
                 registerError.textContent = PASSWORD_RULE_MESSAGE;
@@ -1046,9 +1301,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (!registerAddress) {
-                registerError.textContent = 'Vui l\u00f2ng ch\u1ecdn \u0111\u1ea7y \u0111\u1ee7 \u0111\u1ecba ch\u1ec9 giao h\u00e0ng khi \u0111\u0103ng k\u00fd t\u00e0i kho\u1ea3n m\u1edbi.';
+            if (registerPassword !== registerConfirmPassword) {
+                registerError.textContent = 'Mật khẩu xác nhận không khớp.';
                 registerError.classList.remove('hidden');
+                return;
+            }
+
+            const registerPhone = normalizePhoneInput(document.getElementById('register-phone').value);
+            if (!isValidVietnamMobilePhone(registerPhone)) {
+                registerError.textContent = 'Số điện thoại không hợp lệ. Hãy nhập số di động Việt Nam, ví dụ 0935250037 hoặc +84935250037.';
+                registerError.classList.remove('hidden');
+                return;
+            }
+
+            const registerPayload = {
+                username: document.getElementById('register-username').value.trim(),
+                ho_ten: document.getElementById('register-name').value.trim(),
+                email: document.getElementById('register-email').value.trim(),
+                sdt: registerPhone,
+                password: registerPassword,
+                confirm_password: registerConfirmPassword
+            };
+
+            const otpSent = await sendOtpEmail({
+                endpoint: '/auth/register/otp',
+                errorBox: registerError,
+                button: submitButton,
+                payload: {
+                    username: registerPayload.username,
+                    email: registerPayload.email
+                },
+                successMessage: 'Mã OTP đăng ký đã được gửi đến email của bạn.',
+                showSuccessAlert: false,
+                cooldown: false,
+                loadingText: 'Đang gửi OTP...'
+            });
+
+            if (!otpSent) {
+                return;
+            }
+
+            pendingRegisterPayload = registerPayload;
+            if (registerOtpEmail) {
+                registerOtpEmail.textContent = registerPayload.email;
+            }
+            document.getElementById('register-otp-code').value = '';
+            hideInlineError(registerOtpError);
+            switchAuthOverlay(registerOtpOverlay);
+        });
+
+        registerOtpForm?.addEventListener('submit', async event => {
+            event.preventDefault();
+            hideInlineError(registerOtpError);
+
+            if (!pendingRegisterPayload) {
+                showInlineError(registerOtpError, 'Không tìm thấy thông tin đăng ký. Vui lòng nhập lại.');
+                return;
+            }
+
+            const registerOtpCode = document.getElementById('register-otp-code').value.trim();
+            if (!/^\d{6}$/.test(registerOtpCode)) {
+                showInlineError(registerOtpError, 'Vui lòng nhập mã OTP gồm 6 chữ số.');
                 return;
             }
 
@@ -1057,27 +1370,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     auth: false,
                     body: {
-                        username: document.getElementById('register-username').value.trim(),
-                        ho_ten: document.getElementById('register-name').value.trim(),
-                        email: document.getElementById('register-email').value.trim(),
-                        sdt: document.getElementById('register-phone').value.trim(),
-                        password: registerPassword,
-                        confirm_password: registerConfirmPassword
+                        ...pendingRegisterPayload,
+                        otp_code: registerOtpCode
                     }
                 });
 
                 applyLoginSession(response);
-                saveAddressBook([{ ...registerAddress, isDefault: true }]);
-                currentCheckoutAddressId = getDefaultAddress()?.id || '';
-                closeOverlay(registerOverlay);
+                closeOverlay(registerOtpOverlay);
                 registerForm.reset();
-                await syncRegisterAddressSelects();
+                registerOtpForm.reset();
+                pendingRegisterPayload = null;
                 updateAuthUI();
                 await loadProducts();
-                alert('Đăng ký thành công.');
+                alert('Đăng ký thành công. Vui lòng thêm địa chỉ giao hàng cho tài khoản mới.');
+                await promptCustomerAddressIfMissing();
             } catch (error) {
-                registerError.textContent = error.message;
-                registerError.classList.remove('hidden');
+                showInlineError(registerOtpError, error.message);
             }
         });
 
@@ -1092,6 +1400,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const forgotOtpCode = document.getElementById('forgot-otp').value.trim();
+            if (!/^\d{6}$/.test(forgotOtpCode)) {
+                forgotPasswordError.textContent = 'Vui lòng nhập mã OTP gồm 6 chữ số.';
+                forgotPasswordError.classList.remove('hidden');
+                return;
+            }
+
             try {
                 const response = await apiRequest('/auth/forgot-password', {
                     method: 'POST',
@@ -1100,7 +1415,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         username: document.getElementById('forgot-username').value.trim(),
                         email: document.getElementById('forgot-email').value.trim(),
                         new_password: forgotNewPassword,
-                        confirm_password: document.getElementById('forgot-confirm-password').value
+                        confirm_password: document.getElementById('forgot-confirm-password').value,
+                        otp_code: forgotOtpCode
                     }
                 });
 
@@ -1118,13 +1434,19 @@ document.addEventListener('DOMContentLoaded', () => {
         profileForm.addEventListener('submit', async event => {
             event.preventDefault();
 
+            const profilePhone = normalizePhoneInput(document.getElementById('edit-phone').value);
+            if (profilePhone && !isValidVietnamMobilePhone(profilePhone)) {
+                alert('Số điện thoại không hợp lệ. Hãy nhập số di động Việt Nam, ví dụ 0935250037 hoặc +84935250037.');
+                return;
+            }
+
             try {
                 currentUser = normalizeUserProfile(await apiRequest('/profile', {
                     method: 'PUT',
                     body: {
                         ho_ten: document.getElementById('edit-name').value.trim(),
                         email: document.getElementById('edit-email').value.trim(),
-                        sdt: document.getElementById('edit-phone').value.trim()
+                        sdt: profilePhone
                     }
                 }));
                 localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
@@ -1292,8 +1614,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const favoriteButton = event.target.closest('[data-favorite-toggle]');
             if (favoriteButton) {
                 event.preventDefault();
+                event.stopPropagation();
                 toggleWishlistProduct(favoriteButton.dataset.productId);
-                renderProductDetailView();
                 return;
             }
 
@@ -1315,8 +1637,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const favoriteButton = event.target.closest('[data-favorite-toggle]');
             if (favoriteButton) {
                 event.preventDefault();
+                event.stopPropagation();
                 toggleWishlistProduct(favoriteButton.dataset.productId);
-                renderPersonalizedHomeRecommendations();
                 return;
             }
 
@@ -1439,7 +1761,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             toggleWishlistProduct(currentDetailProductId);
-            renderProductDetailView();
         });
         productDetailAddCartBtn?.addEventListener('click', () => {
             addCurrentDetailSelectionToCart();
@@ -1784,6 +2105,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function scheduleProductContainerClear() {
+        productRenderToken += 1;
+        productContainer.classList.add('hidden');
+
+        if (pendingProductContainerClearTimer) {
+            window.clearTimeout(pendingProductContainerClearTimer);
+        }
+
+        const clearToken = productRenderToken;
+        pendingProductContainerClearTimer = window.setTimeout(() => {
+            if (currentView === 'home' && clearToken === productRenderToken) {
+                productContainer.innerHTML = '';
+            }
+            pendingProductContainerClearTimer = null;
+        }, 500);
+    }
+
     function renderCatalog() {
         const baseProducts = getBaseProducts();
         const filteredProducts = getFilteredProducts(baseProducts);
@@ -2002,12 +2340,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderAdminProductList() {
+        const productCountChip = document.getElementById('staff-product-filter-count');
+
         if (!canManageProducts()) {
             productListBody.innerHTML = '';
+            if (productCountChip) {
+                productCountChip.textContent = '0 sản phẩm';
+            }
             return;
         }
 
-        productListBody.innerHTML = allProducts.map(product => `
+        syncStaffProductFilterInputs(allProducts);
+
+        const filteredProducts = getFilteredAdminProducts(allProducts);
+
+        if (productCountChip) {
+            productCountChip.textContent = `${filteredProducts.length} sản phẩm`;
+        }
+
+        if (!filteredProducts.length) {
+            productListBody.innerHTML = '<tr><td colspan="6"><div class="workspace-empty">Không có sản phẩm phù hợp với bộ lọc hiện tại.</div></td></tr>';
+            return;
+        }
+
+        productListBody.innerHTML = filteredProducts.map(product => `
             <tr>
                 <td>${escapeHtml(product.sku || '')}</td>
                 <td>${escapeHtml(product.ten_san_pham || '')}</td>
@@ -2021,6 +2377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
         `).join('');
         repairTextNodes(productListBody);
+        repairTextNodes(document.getElementById('products-mgmt'));
     }
 
     async function renderUserList() {
@@ -2156,7 +2513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
         updateCartCount();
-        alert(`Đã thêm "${product.ten_san_pham}" vào giỏ hàng tạm.`);
+        showCenteredMessage(`\u0110\u00e3 th\u00eam "${sanitizeProductText(product.ten_san_pham || 's\u1ea3n ph\u1ea9m')}" v\u00e0o gi\u1ecf h\u00e0ng.`);
     }
 
     function updateCartCount() {
@@ -2167,6 +2524,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleMegaMenu() {
         const shouldOpen = megaMenu.classList.contains('hidden');
         if (shouldOpen) {
+            renderMegaMenu();
             megaMenu.classList.remove('hidden');
             megaMenu.setAttribute('aria-hidden', 'false');
         } else {
@@ -2235,7 +2593,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function switchAuthOverlay(targetOverlay) {
-        [loginOverlay, registerOverlay, forgotPasswordOverlay].forEach(overlay => {
+        [loginOverlay, registerOverlay, registerOtpOverlay, forgotPasswordOverlay].forEach(overlay => {
             if (overlay !== targetOverlay) {
                 closeOverlay(overlay);
             }
@@ -2249,6 +2607,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeOverlay(overlay) {
         overlay.classList.add('hidden');
+    }
+
+    function isRegisterFlowOverlay(overlay) {
+        return overlay === registerOverlay || overlay === registerOtpOverlay;
+    }
+
+    function resetPendingRegisterState() {
+        pendingRegisterPayload = null;
+        hideInlineError(registerError);
+        hideInlineError(registerOtpError);
+        registerForm?.reset();
+        registerOtpForm?.reset();
     }
 
     function canManageProducts() {
@@ -2497,7 +2867,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fa-solid fa-heart"></i>
                     </button>
                     <span class="home-sale-badge">${saleLabel}</span>
-                    <img src="${escapeHtml(getProductImageUrl(product))}" alt="${escapeHtml(product.ten_san_pham || 'Sản phẩm')}" loading="lazy">
+                    <img src="${escapeHtml(getProductImageUrl(product))}" alt="${escapeHtml(product.ten_san_pham || 'Sản phẩm')}" loading="lazy" decoding="async">
                 </div>
                 <div class="home-sale-card-body">
                     <p class="home-sale-category">${escapeHtml(product.danh_muc || '')}</p>
@@ -2517,6 +2887,127 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    function getHomeShowcaseRail() {
+        return homeSaleTrack?.querySelector('.home-sale-rail') || null;
+    }
+
+    function getHomeShowcaseGap() {
+        const rail = getHomeShowcaseRail();
+        const gap = rail ? Number.parseFloat(window.getComputedStyle(rail).columnGap) : 18;
+        return Number.isFinite(gap) ? gap : 18;
+    }
+
+    function getHomeShowcaseCardBasis(visibleCount) {
+        const gap = getHomeShowcaseGap();
+        const totalGap = Math.max(0, visibleCount - 1) * gap;
+        return `calc((100% - ${totalGap}px) / ${visibleCount})`;
+    }
+
+    function getHomeShowcaseDotIndex() {
+        if (!homeShowcaseProducts.length) {
+            return 0;
+        }
+
+        return ((homeShowcaseIndex % homeShowcaseProducts.length) + homeShowcaseProducts.length) % homeShowcaseProducts.length;
+    }
+
+    function syncHomeShowcaseDots() {
+        if (!homeSaleDots) {
+            return;
+        }
+
+        const activeIndex = getHomeShowcaseDotIndex();
+        homeSaleDots.querySelectorAll('.home-sale-dot').forEach((dot, index) => {
+            const isActive = index === activeIndex;
+            dot.classList.toggle('active', isActive);
+            dot.setAttribute('aria-current', isActive ? 'true' : 'false');
+        });
+    }
+
+    function syncHomeShowcaseWishlistButtons() {
+        const wishlistSet = new Set(getWishlistIds());
+        homeSaleTrack?.querySelectorAll('[data-favorite-toggle]').forEach(button => {
+            const productId = button.dataset.productId;
+            const active = wishlistSet.has(String(productId));
+            const label = active ? 'B\u1ecf kh\u1ecfi y\u00eau th\u00edch' : 'Th\u00eam v\u00e0o y\u00eau th\u00edch';
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-label', label);
+            button.setAttribute('title', label);
+        });
+    }
+
+    function syncFavoriteButtons(productId = '', scope = null) {
+        const roots = scope
+            ? [scope]
+            : (currentView === 'home' ? [homeSaleShowcase, personalizedHomeView] : [document]);
+        const wishlistSet = new Set(getWishlistIds());
+
+        roots
+            .filter(Boolean)
+            .forEach(root => root.querySelectorAll('[data-favorite-toggle]').forEach(button => {
+                if (productId && String(button.dataset.productId || '') !== String(productId)) {
+                    return;
+                }
+
+                const active = wishlistSet.has(String(button.dataset.productId));
+                const label = active ? 'B\u1ecf kh\u1ecfi y\u00eau th\u00edch' : 'Th\u00eam v\u00e0o y\u00eau th\u00edch';
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-label', label);
+                button.setAttribute('title', label);
+            }));
+    }
+
+    function syncHomeShowcasePosition(options = {}) {
+        const { animate = true } = options;
+        const rail = getHomeShowcaseRail();
+        if (!homeSaleTrack || !rail || !homeShowcaseProducts.length) {
+            return;
+        }
+
+        const visibleCount = getHomeShowcaseVisibleCount();
+        const canSlide = homeShowcaseProducts.length > visibleCount;
+        homeSaleTrack.style.setProperty('--home-sale-card-basis', getHomeShowcaseCardBasis(visibleCount));
+        if (!canSlide) {
+            homeShowcaseIndex = 0;
+        }
+
+        const firstCard = rail.querySelector('.home-sale-card');
+        const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : 0;
+        const offset = canSlide ? Math.max(0, homeShowcaseIndex) * (cardWidth + getHomeShowcaseGap()) : 0;
+
+        if (!animate) {
+            rail.classList.add('no-transition');
+        }
+        rail.style.transform = `translate3d(${-offset}px, 0, 0)`;
+        syncHomeShowcaseDots();
+
+        if (!animate) {
+            window.requestAnimationFrame(() => rail.classList.remove('no-transition'));
+        }
+    }
+
+    function clearHomeShowcaseLoopReset() {
+        if (!homeShowcaseResetTimer) {
+            return;
+        }
+
+        window.clearTimeout(homeShowcaseResetTimer);
+        homeShowcaseResetTimer = null;
+    }
+
+    function queueHomeShowcaseLoopReset() {
+        clearHomeShowcaseLoopReset();
+        if (homeShowcaseIndex < homeShowcaseProducts.length) {
+            return;
+        }
+
+        homeShowcaseResetTimer = window.setTimeout(() => {
+            homeShowcaseIndex = 0;
+            syncHomeShowcasePosition({ animate: false });
+            homeShowcaseResetTimer = null;
+        }, 680);
+    }
+
     function stopHomeShowcaseRotation() {
         if (homeShowcaseTimer) {
             window.clearInterval(homeShowcaseTimer);
@@ -2534,8 +3025,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         homeShowcaseTimer = window.setInterval(() => {
-            homeShowcaseIndex = (homeShowcaseIndex + 1) % homeShowcaseProducts.length;
-            renderHomeSaleShowcase();
+            homeShowcaseIndex += 1;
+            syncHomeShowcasePosition();
+            queueHomeShowcaseLoopReset();
         }, 7000);
     }
 
@@ -2545,32 +3037,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const shouldShow = shouldShowHomeRecommendations();
+        if (!shouldShow || !isHomeShowcaseEnabled()) {
+            homeShowcaseProducts = [];
+            homeShowcaseRenderSignature = '';
+            homeSaleShowcase.classList.add('hidden');
+            homeSaleTrack.innerHTML = '';
+            homeSaleDots.innerHTML = '';
+            stopHomeShowcaseRotation();
+            clearHomeShowcaseLoopReset();
+            return;
+        }
+
+        const visibleCount = getHomeShowcaseVisibleCount();
+        if (homeShowcaseProducts.length && homeShowcaseRenderSignature && getHomeShowcaseRail()) {
+            const cachedRenderSignature = [
+                homeShowcaseProducts.map(product => product.id).join('|'),
+                `visible:${visibleCount}`
+            ].join('::');
+            if (cachedRenderSignature === homeShowcaseRenderSignature) {
+                homeSaleShowcase.classList.remove('hidden');
+                syncHomeShowcaseWishlistButtons();
+                syncHomeShowcasePosition({ animate: false });
+                startHomeShowcaseRotation();
+                return;
+            }
+        }
+
         homeShowcaseProducts = getHomeShowcaseProducts();
         const canRender = shouldShow && isHomeShowcaseEnabled() && homeShowcaseProducts.length > 0;
 
         homeSaleShowcase.classList.toggle('hidden', !canRender);
         if (!canRender) {
+            homeShowcaseRenderSignature = '';
             homeSaleTrack.innerHTML = '';
             homeSaleDots.innerHTML = '';
             stopHomeShowcaseRotation();
+            clearHomeShowcaseLoopReset();
             return;
         }
 
-        const visibleCount = getHomeShowcaseVisibleCount();
-        homeShowcaseIndex = ((homeShowcaseIndex % homeShowcaseProducts.length) + homeShowcaseProducts.length) % homeShowcaseProducts.length;
-        const visibleProducts = getCyclicProductSlice(homeShowcaseProducts, homeShowcaseIndex, visibleCount);
+        const canSlide = homeShowcaseProducts.length > visibleCount;
+        const nextRenderSignature = [
+            homeShowcaseProducts.map(product => product.id).join('|'),
+            `visible:${visibleCount}`
+        ].join('::');
+        if (nextRenderSignature === homeShowcaseRenderSignature && getHomeShowcaseRail()) {
+            homeSaleShowcase.classList.remove('hidden');
+            syncHomeShowcaseWishlistButtons();
+            syncHomeShowcasePosition({ animate: false });
+            startHomeShowcaseRotation();
+            return;
+        }
+        homeShowcaseRenderSignature = nextRenderSignature;
+        homeShowcaseIndex = canSlide
+            ? ((homeShowcaseIndex % homeShowcaseProducts.length) + homeShowcaseProducts.length) % homeShowcaseProducts.length
+            : 0;
+        const loopProducts = canSlide
+            ? [...homeShowcaseProducts, ...homeShowcaseProducts.slice(0, visibleCount)]
+            : homeShowcaseProducts;
 
-        homeSaleTrack.innerHTML = visibleProducts.map(buildHomeShowcaseCardMarkup).join('');
-        homeSaleDots.innerHTML = homeShowcaseProducts.map((_, index) => `
+        homeSaleTrack.innerHTML = `
+            <div class="home-sale-rail">
+                ${loopProducts.map(buildHomeShowcaseCardMarkup).join('')}
+            </div>
+        `;
+        homeSaleDots.innerHTML = canSlide ? homeShowcaseProducts.map((_, index) => `
             <button
                 class="home-sale-dot ${index === homeShowcaseIndex ? 'active' : ''}"
                 type="button"
                 data-home-slide="${index}"
                 aria-label="Đi tới nhóm sản phẩm ${index + 1}"
             ></button>
-        `).join('');
+        `).join('') : '';
 
         repairRenderedContent();
+        syncHomeShowcasePosition({ animate: false });
         startHomeShowcaseRotation();
     }
 
@@ -2942,6 +3483,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pageKey: `category:${category || 'all'}`,
             categoryKey: category || ''
         });
+        closeMegaMenu();
         renderCatalog();
     }
 
@@ -2974,6 +3516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 menuItemLabel: item.label || ''
             }
         });
+        closeMegaMenu();
         renderCatalog();
     }
 
@@ -2997,11 +3540,12 @@ document.addEventListener('DOMContentLoaded', () => {
             pageKey: `brand:${brand || 'all'}`,
             brandKey: brand || ''
         });
+        closeMegaMenu();
         renderCatalog();
     }
 
     function resetCatalogState(options = {}) {
-        const { clearQuery = false } = options;
+        const { clearQuery = false, skipRender = false } = options;
         currentCollectionId = '';
         currentCategory = 'all';
         currentMenuItemId = '';
@@ -3015,7 +3559,9 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.value = '';
         }
         closeSearchSuggestions();
-        renderCatalog();
+        if (!skipRender) {
+            renderCatalog();
+        }
     }
 
     function syncNavState() {
@@ -3118,7 +3664,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
         updateCartCount();
-        alert(`Đã thêm "${product.ten_san_pham}" vào giỏ hàng tạm.`);
+        showCenteredMessage(`\u0110\u00e3 th\u00eam "${sanitizeProductText(product.ten_san_pham || 's\u1ea3n ph\u1ea9m')}" v\u00e0o gi\u1ecf h\u00e0ng.`);
     }
 
     function updateAuthUI() {
@@ -3177,7 +3723,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = text ? safeJsonParse(text) : null;
 
         if (!response.ok) {
-            const message = data?.message || 'Yêu cầu không thành công.';
+            const message = buildApiErrorMessage(path, response, text, data);
             if (response.status === 401) {
                 clearSession();
                 updateAuthUI();
@@ -3330,12 +3876,69 @@ document.addEventListener('DOMContentLoaded', () => {
         return Number(product?.gia_goc ?? product?.gia_ban ?? 0);
     }
 
+    function getProductVoucherDiscountAmount(voucher, productPrice) {
+        const price = Number(productPrice || 0);
+        if (!voucher || price <= 0 || price < Number(voucher.minOrder || 0)) {
+            return 0;
+        }
+
+        const rawDiscount = price * Number(voucher.percent || 0);
+        const maxDiscount = Number(voucher.maxDiscount || 0);
+        return maxDiscount > 0 ? Math.min(rawDiscount, maxDiscount) : rawDiscount;
+    }
+
+    function voucherAppliesToProduct(voucher, product) {
+        const categories = getVoucherCategories(voucher);
+        if (!categories.length || categories.some(category => normalizeText(category) === 'tat ca')) {
+            return true;
+        }
+
+        const productTargets = [
+            product?.danh_muc,
+            getCanonicalSportFromProduct(product),
+            getProductGroupLabel(product)
+        ].map(value => normalizeText(value)).filter(Boolean);
+
+        return categories.some(category => productTargets.includes(normalizeText(category)));
+    }
+
+    function getBestProductVoucher(product) {
+        const originalPrice = getProductOriginalPrice(product);
+        if (originalPrice <= 0) {
+            return null;
+        }
+
+        return getCustomerVisibleVouchers()
+            .filter(voucher => voucherAppliesToProduct(voucher, product))
+            .map(voucher => ({
+                voucher,
+                discount: getProductVoucherDiscountAmount(voucher, originalPrice)
+            }))
+            .filter(item => item.discount > 0)
+            .sort((left, right) => right.discount - left.discount)[0]?.voucher || null;
+    }
+
     function getProductCurrentPrice(product) {
-        return Number(product?.gia_hien_thi ?? product?.gia_ban ?? 0);
+        const originalPrice = getProductOriginalPrice(product);
+        const basePrice = Number(product?.gia_hien_thi ?? product?.gia_ban ?? 0);
+        const productVoucher = getBestProductVoucher(product);
+        if (!productVoucher) {
+            return basePrice;
+        }
+
+        const voucherDiscount = getProductVoucherDiscountAmount(productVoucher, originalPrice);
+        const voucherPrice = roundPromotionPrice(originalPrice - voucherDiscount);
+        return Math.max(0, Math.min(basePrice, voucherPrice));
     }
 
     function getProductDiscountPercent(product) {
-        return Math.max(0, Number(product?.phan_tram_giam ?? getPromotionPercentBySku(product?.sku) ?? 0));
+        const originalPrice = getProductOriginalPrice(product);
+        const currentPrice = getProductCurrentPrice(product);
+        if (originalPrice <= 0 || currentPrice >= originalPrice) {
+            return 0;
+        }
+
+        return Math.max(0, Math.round(((originalPrice - currentPrice) / originalPrice) * 100));
     }
 
     function hasProductPromotion(product) {
@@ -3864,7 +4467,7 @@ document.addEventListener('DOMContentLoaded', () => {
             khachhang01: 'Nguyễn Văn A',
             khachhang02: 'Trần Thị B'
         };
-        const rawName = String(user?.display_name || user?.ho_ten || user?.full_name || user?.name || '').trim();
+        const rawName = String(user?.display_name || user?.ho_ten || user?.hoTen || user?.full_name || user?.name || '').trim();
         const cleanedName = sanitizeProductText(rawName).trim();
         const usernameKey = normalizeText(user?.username);
 
@@ -4029,7 +4632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = text ? normalizePayload(safeJsonParse(text)) : null;
 
         if (!response.ok) {
-            const message = data?.message || 'Yêu cầu không thành công.';
+            const message = buildApiErrorMessage(path, response, text, data);
             if (response.status === 401) {
                 clearSession();
                 updateAuthUI();
@@ -4054,8 +4657,328 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))}\u0111`;
     }
 
+    function showCenteredMessage(message, type = 'success') {
+        let messageBox = document.getElementById('centered-message');
+        if (!messageBox) {
+            messageBox = document.createElement('div');
+            messageBox.id = 'centered-message';
+            messageBox.className = 'centered-message hidden';
+            messageBox.setAttribute('role', 'status');
+            messageBox.setAttribute('aria-live', 'polite');
+            document.body.appendChild(messageBox);
+        }
+
+        if (centeredMessageTimer) {
+            window.clearTimeout(centeredMessageTimer);
+        }
+
+        messageBox.textContent = message;
+        messageBox.className = `centered-message ${type}`;
+        repairTextNodes(messageBox);
+
+        centeredMessageTimer = window.setTimeout(() => {
+            messageBox.classList.add('hidden');
+        }, 1800);
+    }
+
+    function getPolicyContent(policyKey) {
+        const policyMap = {
+            privacy: {
+                title: 'Chính sách bảo mật',
+                sections: [
+                    {
+                        heading: 'Thông tin thu thập',
+                        items: [
+                            'Flare Fitness thu thập thông tin tài khoản, họ tên, số điện thoại, email, địa chỉ giao hàng và lịch sử đơn hàng để xử lý mua bán.',
+                            'Dữ liệu hành vi như tìm kiếm, xem sản phẩm, thêm giỏ hàng và đánh giá được dùng để cá nhân hóa gợi ý sản phẩm.'
+                        ]
+                    },
+                    {
+                        heading: 'Cách sử dụng và bảo vệ dữ liệu',
+                        items: [
+                            'Thông tin khách hàng chỉ dùng cho vận hành đơn hàng, chăm sóc khách hàng, chống gian lận và cải thiện trải nghiệm.',
+                            'Mật khẩu được lưu ở dạng mã hóa; không chia sẻ dữ liệu cá nhân cho bên thứ ba nếu không phục vụ giao hàng, thanh toán hoặc yêu cầu pháp lý.'
+                        ]
+                    }
+                ]
+            },
+            shipping: {
+                title: 'Chính sách vận chuyển',
+                sections: [
+                    {
+                        heading: 'Phạm vi và thời gian giao hàng',
+                        items: [
+                            'Hỗ trợ giao hàng toàn quốc. Thời gian dự kiến 1-3 ngày tại khu vực nội thành và 3-7 ngày với khu vực xa hơn.',
+                            'Đơn hàng có thể được nhân viên xác nhận trước khi đóng gói và bàn giao cho đơn vị vận chuyển.'
+                        ]
+                    },
+                    {
+                        heading: 'Trách nhiệm khi giao nhận',
+                        items: [
+                            'Khách hàng cần cung cấp đúng số điện thoại và địa chỉ nhận hàng để tránh giao thất bại.',
+                            'Nếu kiện hàng có dấu hiệu móp méo, rách hoặc sai thông tin, khách hàng có quyền từ chối nhận và liên hệ bộ phận hỗ trợ.'
+                        ]
+                    }
+                ]
+            },
+            return: {
+                title: 'Chính sách đổi trả / hoàn tiền',
+                sections: [
+                    {
+                        heading: 'Điều kiện đổi trả',
+                        items: [
+                            'Hỗ trợ đổi trả khi sản phẩm lỗi kỹ thuật, sai mẫu, sai size, thiếu phụ kiện hoặc không đúng mô tả trên website.',
+                            'Sản phẩm cần còn tem, nhãn, hóa đơn hoặc bằng chứng mua hàng; không áp dụng với lỗi phát sinh do sử dụng sai hướng dẫn.'
+                        ]
+                    },
+                    {
+                        heading: 'Thời hạn xử lý',
+                        items: [
+                            'Yêu cầu đổi trả nên được gửi trong 7 ngày kể từ khi nhận hàng.',
+                            'Sau khi kiểm tra điều kiện, cửa hàng sẽ hỗ trợ đổi sản phẩm tương đương hoặc hoàn tiền theo giá trị thanh toán thực tế.'
+                        ]
+                    }
+                ]
+            },
+            payment: {
+                title: 'Chính sách thanh toán COD',
+                sections: [
+                    {
+                        heading: 'Quy trình thanh toán',
+                        items: [
+                            'Đơn hàng mặc định là COD: khách nhận hàng trước, thanh toán cho nhân viên giao hàng hoặc nhân viên cửa hàng.',
+                            'Trạng thái thanh toán chỉ chuyển thành thành công sau khi nhân viên xác nhận đã giao hàng và đã thu tiền.'
+                        ]
+                    },
+                    {
+                        heading: 'Lưu ý',
+                        items: [
+                            'Khách hàng cần kiểm tra đúng số tiền phải thanh toán sau ưu đãi trước khi nhận hàng.',
+                            'Nếu đơn bị hủy hoặc giao thất bại, hệ thống không ghi nhận doanh thu cho đơn đó.'
+                        ]
+                    }
+                ]
+            },
+            inspection: {
+                title: 'Chính sách kiểm hàng',
+                sections: [
+                    {
+                        heading: 'Quyền kiểm tra',
+                        items: [
+                            'Khách hàng được kiểm tra ngoại quan, số lượng, size, màu sắc và phụ kiện đi kèm trước khi thanh toán.',
+                            'Việc kiểm hàng không bao gồm sử dụng thử dài hạn hoặc làm ảnh hưởng tình trạng mới của sản phẩm.'
+                        ]
+                    },
+                    {
+                        heading: 'Xử lý sai lệch',
+                        items: [
+                            'Nếu phát hiện sai mẫu, sai size hoặc thiếu sản phẩm, khách hàng có thể từ chối nhận và tạo yêu cầu hỗ trợ.',
+                            'Cửa hàng sẽ đối chiếu đơn hàng và cập nhật hướng xử lý đổi, giao lại hoặc hủy đơn.'
+                        ]
+                    }
+                ]
+            },
+            warranty: {
+                title: 'Chính sách bảo hành',
+                sections: [
+                    {
+                        heading: 'Phạm vi bảo hành',
+                        items: [
+                            'Sản phẩm được hỗ trợ bảo hành theo chính sách của hãng hoặc nhà phân phối nếu có lỗi sản xuất.',
+                            'Không bảo hành hao mòn tự nhiên, trầy xước do va chạm, hư hỏng do bảo quản sai hoặc sử dụng sai mục đích.'
+                        ]
+                    },
+                    {
+                        heading: 'Cách gửi yêu cầu',
+                        items: [
+                            'Khách hàng gửi mã đơn hàng, ảnh/video lỗi và mô tả tình trạng qua kênh tư vấn.',
+                            'Nhân viên sẽ kiểm tra điều kiện và thông báo phương án tiếp nhận, sửa chữa, đổi mới hoặc từ chối bảo hành.'
+                        ]
+                    }
+                ]
+            },
+            terms: {
+                title: 'Quy định sử dụng',
+                sections: [
+                    {
+                        heading: 'Quy định tài khoản',
+                        items: [
+                            'Khách hàng chịu trách nhiệm bảo mật thông tin đăng nhập và các thao tác đặt hàng phát sinh từ tài khoản của mình.',
+                            'Không sử dụng website để đặt hàng giả, spam tư vấn, khai báo thông tin sai lệch hoặc can thiệp trái phép vào hệ thống.'
+                        ]
+                    },
+                    {
+                        heading: 'Quyền vận hành',
+                        items: [
+                            'Cửa hàng có quyền tạm khóa tài khoản, hủy đơn hoặc từ chối phục vụ nếu phát hiện gian lận hoặc hành vi gây ảnh hưởng hệ thống.',
+                            'Nội dung chính sách có thể được cập nhật để phù hợp vận hành thực tế và sẽ được hiển thị trên website.'
+                        ]
+                    }
+                ]
+            }
+        };
+
+        return policyMap[policyKey] || policyMap.terms;
+    }
+
+    function openPolicyModal(policyKey) {
+        if (!policyOverlay || !policyTitle || !policyContent) {
+            return;
+        }
+
+        const policy = getPolicyContent(policyKey);
+        policyTitle.textContent = policy.title;
+        policyContent.innerHTML = `
+            <p class="customer-card-meta">Nội dung tham khảo theo cách các sàn thương mại điện tử lớn trình bày. Khi triển khai thật, nhóm nên rà soát lại với quy định pháp lý và chính sách vận hành riêng.</p>
+            ${policy.sections.map(section => `
+                <section>
+                    <h3>${escapeHtml(section.heading)}</h3>
+                    <ul>
+                        ${section.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                    </ul>
+                </section>
+            `).join('')}
+        `;
+        openOverlay(policyOverlay);
+        repairTextNodes(policyOverlay);
+    }
+
     function isStrongPassword(password) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$/.test(String(password || ''));
+    }
+
+    function normalizePhoneInput(value) {
+        return String(value || '').trim().replace(/[\s.-]/g, '');
+    }
+
+    function isValidVietnamMobilePhone(value) {
+        return /^(0|\+84)(3|5|7|8|9)\d{8}$/.test(normalizePhoneInput(value));
+    }
+
+    function buildApiErrorMessage(path, response, text, data) {
+        const explicitMessage = data?.message || data?.error || data?.detail;
+        if (explicitMessage) {
+            return explicitMessage;
+        }
+
+        if (response.status === 404 && path.includes('/auth/register/otp')) {
+            return 'Backend chưa có API gửi OTP đăng ký. Hãy chạy lại: docker compose up -d --build';
+        }
+
+        if (response.status === 404 && path.includes('/auth/forgot-password/otp')) {
+            return 'Backend chưa có API gửi OTP quên mật khẩu. Hãy chạy lại: docker compose up -d --build';
+        }
+
+        if (response.status >= 500 && path.includes('/auth')) {
+            return 'Backend đang lỗi khi xử lý xác thực. Hãy kiểm tra log container app và cấu hình APP_MAIL_PASSWORD.';
+        }
+
+        const plainText = String(text || '').trim();
+        if (plainText && !plainText.startsWith('<')) {
+            return plainText.slice(0, 220);
+        }
+
+        return `Yêu cầu không thành công (${response.status}).`;
+    }
+
+    async function sendOtpEmail({
+        endpoint,
+        payload,
+        errorBox,
+        button,
+        successMessage,
+        showSuccessAlert = true,
+        cooldown = true,
+        loadingText = 'Đang gửi...'
+    }) {
+        const email = String(payload?.email || '').trim();
+        const username = String(payload?.username || '').trim();
+        const originalText = button?.textContent || 'Gửi OTP';
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showInlineError(errorBox, 'Vui lòng nhập email hợp lệ trước khi gửi OTP.');
+            return false;
+        }
+
+        if (endpoint.includes('forgot-password') && !username) {
+            showInlineError(errorBox, 'Vui lòng nhập tên đăng nhập trước khi gửi OTP.');
+            return false;
+        }
+
+        hideInlineError(errorBox);
+        if (button) {
+            button.disabled = true;
+            button.textContent = loadingText;
+        }
+
+        try {
+            const response = await apiRequest(endpoint, {
+                method: 'POST',
+                auth: false,
+                body: {
+                    ...payload,
+                    email,
+                    username
+                }
+            });
+
+            if (showSuccessAlert) {
+                alert(response?.message || successMessage);
+            }
+
+            if (cooldown) {
+                startOtpCooldown(button, 60, originalText);
+            } else if (button) {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+
+            return true;
+        } catch (error) {
+            if (button) {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+            showInlineError(errorBox, error.message || 'Không thể gửi OTP.');
+            return false;
+        }
+    }
+
+    function startOtpCooldown(button, seconds = 60, originalText = 'Gửi OTP') {
+        if (!button) {
+            return;
+        }
+
+        let remainingSeconds = seconds;
+        button.disabled = true;
+        button.textContent = `${remainingSeconds}s`;
+
+        const timer = window.setInterval(() => {
+            remainingSeconds -= 1;
+            if (remainingSeconds <= 0) {
+                window.clearInterval(timer);
+                button.disabled = false;
+                button.textContent = originalText;
+                return;
+            }
+            button.textContent = `${remainingSeconds}s`;
+        }, 1000);
+    }
+
+    function showInlineError(errorBox, message) {
+        if (!errorBox) {
+            return;
+        }
+        errorBox.textContent = message;
+        errorBox.classList.remove('hidden');
+    }
+
+    function hideInlineError(errorBox) {
+        if (!errorBox) {
+            return;
+        }
+        errorBox.textContent = '';
+        errorBox.classList.add('hidden');
     }
 
     function canManageProducts() {
@@ -4270,19 +5193,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const normalizedAddresses = (Array.isArray(addresses) ? addresses : [])
-            .map(address => ({
-                id: String(address?.id || generateRecordId('address')),
-                recipient: String(address?.recipient || '').trim(),
-                phone: String(address?.phone || '').trim(),
-                line: String(address?.line || '').trim(),
-                ward: String(address?.ward || '').trim(),
-                wardCode: String(address?.wardCode || '').trim(),
-                district: String(address?.district || '').trim(),
-                city: String(address?.city || '').trim(),
-                provinceCode: String(address?.provinceCode || '').trim(),
-                note: String(address?.note || '').trim(),
-                isDefault: Boolean(address?.isDefault)
-            }))
+            .map(address => {
+                const street = String(address?.street || '').trim();
+                const houseNumber = String(address?.houseNumber || '').trim();
+                const line = String(address?.line || buildAddressLine(houseNumber, street)).trim();
+
+                return {
+                    id: String(address?.id || generateRecordId('address')),
+                    recipient: String(address?.recipient || '').trim(),
+                    phone: String(address?.phone || '').trim(),
+                    line,
+                    houseNumber,
+                    street,
+                    ward: String(address?.ward || '').trim(),
+                    wardCode: String(address?.wardCode || '').trim(),
+                    district: String(address?.district || '').trim(),
+                    city: String(address?.city || '').trim(),
+                    provinceCode: String(address?.provinceCode || '').trim(),
+                    note: String(address?.note || '').trim(),
+                    isDefault: Boolean(address?.isDefault)
+                };
+            })
             .filter(address => address.recipient && address.phone && address.line && address.ward && address.district && address.city);
 
         const hasDefault = normalizedAddresses.some(address => address.isDefault);
@@ -4317,6 +5248,18 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(storageKey, JSON.stringify(Array.isArray(orders) ? orders : []));
     }
 
+    function buildAddressLine(houseNumber = '', street = '') {
+        return [houseNumber, street]
+            .map(value => String(value || '').trim())
+            .filter(Boolean)
+            .join(' ');
+    }
+
+    function getAddressLineText(address) {
+        const composedLine = buildAddressLine(address?.houseNumber, address?.street);
+        return composedLine || String(address?.line || '').trim();
+    }
+
     function buildAddressText(address) {
         if (!address) {
             return 'Chưa cập nhật địa chỉ giao hàng';
@@ -4327,7 +5270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             && normalizeText(district) !== normalizeText('Không áp dụng (mô hình 2 cấp)');
 
         return [
-            address.line,
+            getAddressLineText(address),
             address.ward,
             shouldShowDistrict ? district : '',
             address.city
@@ -4408,6 +5351,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 fallbackOption.selected = true;
             }
         }
+    }
+
+    function getSelectedAddressProvince() {
+        const provinceCode = addressCitySelect?.value || '';
+        return administrativeUnitsCache.find(unit => unit.code === provinceCode) || null;
+    }
+
+    function getSelectedAddressWardName(address = null) {
+        if (address?.ward) {
+            return String(address.ward || '').trim();
+        }
+        if (!addressWardSelect?.value) {
+            return '';
+        }
+        const selectedWardText = String(addressWardSelect?.selectedOptions?.[0]?.textContent || '').trim();
+        return selectedWardText;
+    }
+
+    function getStreetOptionsForAddress(province = null, wardName = '') {
+        const provinceText = normalizeText([
+            province?.fullName,
+            province?.shortName,
+            addressCitySelect?.selectedOptions?.[0]?.textContent
+        ].filter(Boolean).join(' '));
+        const wardText = normalizeText(wardName);
+        const matchedByWard = [];
+        const matchedByProvince = [];
+
+        ADDRESS_STREET_RULES.forEach(rule => {
+            const matchesProvince = (rule.provinces || []).some(name => provinceText.includes(normalizeText(name)));
+            if (!matchesProvince) {
+                return;
+            }
+
+            const ruleStreets = Array.isArray(rule.streets) ? rule.streets : [];
+            if (Array.isArray(rule.wards) && rule.wards.length) {
+                const matchesWard = rule.wards.some(name => wardText.includes(normalizeText(name)));
+                if (matchesWard) {
+                    matchedByWard.push(...ruleStreets);
+                }
+                return;
+            }
+
+            matchedByProvince.push(...ruleStreets);
+        });
+
+        return Array.from(new Set([...matchedByWard, ...matchedByProvince]))
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+    }
+
+    function inferStreetFromAddressLine(line = '', streetOptions = []) {
+        const normalizedLine = normalizeText(line);
+        return streetOptions.find(street => normalizedLine.includes(normalizeText(street))) || '';
+    }
+
+    function inferHouseNumberFromAddressLine(line = '', street = '') {
+        const rawLine = String(line || '').trim();
+        const rawStreet = String(street || '').trim();
+        if (!rawLine || !rawStreet) {
+            return rawLine;
+        }
+
+        const streetIndex = normalizeText(rawLine).indexOf(normalizeText(rawStreet));
+        if (streetIndex === -1) {
+            return rawLine;
+        }
+
+        return rawLine.slice(0, streetIndex).replace(/[,\s]+$/g, '').trim();
+    }
+
+    function populateStreetOptions(address = null, province = null) {
+        if (!addressStreetSelect) {
+            return;
+        }
+
+        const selectedProvince = province || getProvinceByAddress(address) || getSelectedAddressProvince();
+        const wardName = getSelectedAddressWardName(address);
+        const streetOptions = getStreetOptionsForAddress(selectedProvince, wardName);
+        const selectedStreet = String(address?.street || '').trim()
+            || inferStreetFromAddressLine(address?.line || '', streetOptions);
+        const finalStreetOptions = selectedStreet && !streetOptions.some(street => normalizeText(street) === normalizeText(selectedStreet))
+            ? [selectedStreet, ...streetOptions]
+            : streetOptions;
+
+        if (!selectedProvince || !wardName || !finalStreetOptions.length) {
+            setSelectOptions(addressStreetSelect, [], 'Chọn tỉnh/phường trước', '');
+            addressStreetSelect.disabled = true;
+            return;
+        }
+
+        setSelectOptions(
+            addressStreetSelect,
+            finalStreetOptions.map(street => ({ value: street, label: street })),
+            'Chọn tên đường',
+            selectedStreet
+        );
+        addressStreetSelect.disabled = false;
     }
 
     function getAdministrativeDistrictPlaceholder(address = null) {
@@ -4505,6 +5545,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateProvinceOptions(address, province);
         populateDistrictOptions(address, province);
         populateWardOptions(address, province);
+        populateStreetOptions(address, province);
     }
 
     function handleAddressProvinceChange() {
@@ -4512,6 +5553,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const province = administrativeUnitsCache.find(unit => unit.code === provinceCode) || null;
         populateDistrictOptions(null, province);
         populateWardOptions(null, province);
+        populateStreetOptions(null, province);
     }
 
     function getSelectedCheckoutAddress() {
@@ -4701,6 +5743,35 @@ document.addEventListener('DOMContentLoaded', () => {
         searchSuggestions.classList.remove('hidden');
     }
 
+    function syncProductDetailWishlistState(productId = currentDetailProductId) {
+        if (!productDetailWishlistBtn || !productId) {
+            return;
+        }
+
+        const active = isWishlisted(productId);
+        productDetailWishlistBtn.classList.toggle('active', active);
+        productDetailWishlistBtn.innerHTML = `<i class="fa-solid fa-heart"></i> ${active ? 'Bỏ khỏi yêu thích' : 'Yêu thích'}`;
+        productDetailWishlistBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+
+    function renderProductDetailRelatedProducts(product = findProductById(currentDetailProductId)) {
+        if (!productDetailRelated || !product) {
+            return;
+        }
+
+        const hasFreshDetailRecommendations = detailRecommendationSignature.endsWith(`:detail:${String(product.id)}`);
+        const relatedProducts = hasFreshDetailRecommendations && detailRecommendationProducts.length
+            ? detailRecommendationProducts
+            : getRelatedProductsForDetail(product);
+
+        productDetailRelated.innerHTML = relatedProducts.length
+            ? relatedProducts.map(buildProductCardMarkup).join('')
+            : '<p class="workspace-empty">Chưa có thêm sản phẩm cùng nhóm để gợi ý.</p>';
+        syncFavoriteButtons('', productDetailRelated);
+        syncCommerceAccessUI(productDetailRelated);
+        repairRenderedContent(productDetailRelated);
+    }
+
     function buildProductCardMarkup(product) {
         const badge = product.ton_kho <= 3
             ? '<span class="badge danger">Sap het</span>'
@@ -4816,10 +5887,32 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        productContainer.innerHTML = products.map(buildProductCardMarkup).join('');
+        const renderToken = ++productRenderToken;
+        const batchSize = 36;
+        let renderedCount = Math.min(batchSize, products.length);
+        productContainer.innerHTML = products.slice(0, renderedCount).map(buildProductCardMarkup).join('');
+
+        const renderNextBatch = () => {
+            if (renderToken !== productRenderToken || renderedCount >= products.length) {
+                if (renderToken === productRenderToken) {
+                    window.requestAnimationFrame(() => repairTextNodes(productContainer));
+                }
+                return;
+            }
+
+            const nextCount = Math.min(renderedCount + batchSize, products.length);
+            productContainer.insertAdjacentHTML('beforeend', products.slice(renderedCount, nextCount).map(buildProductCardMarkup).join(''));
+            renderedCount = nextCount;
+            window.requestAnimationFrame(renderNextBatch);
+        };
+
+        if (renderedCount < products.length) {
+            window.requestAnimationFrame(renderNextBatch);
+        }
     }
 
     function renderProducts(products) {
+        const renderToken = ++productRenderToken;
         if (!products.length) {
             if (currentQuery) {
                 const similarProducts = getSearchSuggestions(currentQuery, allProducts, SEARCH_FALLBACK_LIMIT)
@@ -4849,7 +5942,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        productContainer.innerHTML = products.map(buildProductCardMarkup).join('');
+        const batchSize = 36;
+        let renderedCount = Math.min(batchSize, products.length);
+        productContainer.innerHTML = products.slice(0, renderedCount).map(buildProductCardMarkup).join('');
+
+        const renderNextBatch = () => {
+            if (renderToken !== productRenderToken || renderedCount >= products.length) {
+                if (renderToken === productRenderToken) {
+                    window.requestAnimationFrame(() => repairTextNodes(productContainer));
+                }
+                return;
+            }
+
+            const nextCount = Math.min(renderedCount + batchSize, products.length);
+            productContainer.insertAdjacentHTML('beforeend', products.slice(renderedCount, nextCount).map(buildProductCardMarkup).join(''));
+            renderedCount = nextCount;
+            window.requestAnimationFrame(renderNextBatch);
+        };
+
+        if (renderedCount < products.length) {
+            window.requestAnimationFrame(renderNextBatch);
+        }
     }
 
     function renderWishlistView() {
@@ -4916,23 +6029,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentView = shouldUseCatalogView ? 'catalog' : 'home';
 
-        const baseProducts = getBaseProducts();
-        const filteredProducts = getFilteredProducts(baseProducts);
-        renderProducts(filteredProducts);
-        renderCatalogHeader(filteredProducts);
-        renderCollectionView(baseProducts, filteredProducts);
-        renderActiveFilters();
-        renderMegaMenu();
-        renderHomeFeatureStrip();
-        renderHomeSaleShowcase();
-        renderCartView();
-        renderWishlistView();
+        const shouldShowHomeLanding = shouldShowHomeRecommendations();
+        const baseProducts = shouldShowHomeLanding ? [] : getBaseProducts();
+        const filteredProducts = shouldShowHomeLanding ? [] : getFilteredProducts(baseProducts);
+        const isMegaMenuOpen = megaMenu && !megaMenu.classList.contains('hidden');
+        if (shouldShowHomeLanding) {
+            scheduleProductContainerClear();
+            collectionView.classList.add('hidden');
+            activeFilters.classList.add('hidden');
+        } else {
+            renderProducts(filteredProducts);
+            renderCatalogHeader(filteredProducts);
+            renderCollectionView(baseProducts, filteredProducts);
+            renderActiveFilters();
+        }
+        if (isMegaMenuOpen) {
+            renderMegaMenu();
+        }
+        if (shouldShowHomeLanding) {
+            renderHomeFeatureStrip();
+            renderHomeSaleShowcase();
+        }
         const catalogContext = buildCatalogTrackingContext();
         setTrackedPageContext(catalogContext.pageType, catalogContext.pageKey, catalogContext.extra);
-        void loadHomeRecommendations();
+        if (shouldShowHomeLanding) {
+            void loadHomeRecommendations();
+        }
         syncMainView();
         syncNavState();
-        repairRenderedContent();
+        syncCommerceAccessUI();
+        if (!shouldShowHomeLanding) {
+            window.requestAnimationFrame(() => repairTextNodes(productContainer));
+        }
     }
 
     function updateCartCount() {
@@ -4951,7 +6079,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const sourceValue = currentUser?.id
             ?? currentUser?.username
             ?? currentUser?.ten_dang_nhap
+            ?? currentUser?.tenDangNhap
             ?? currentUser?.email
+            ?? currentUser?.sdt
+            ?? currentUser?.phone
             ?? '';
 
         return String(sourceValue).trim();
@@ -5169,16 +6300,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const rawDiscount = subtotal * Number(voucher.percent || 0);
-        return Math.min(rawDiscount, Number(voucher.maxDiscount || 0));
+        const maxDiscount = Number(voucher.maxDiscount || 0);
+        return maxDiscount > 0 ? Math.min(rawDiscount, maxDiscount) : rawDiscount;
     }
 
     function getResolvedVoucher(subtotal) {
         const voucher = getVoucherByCode(getAppliedVoucherCode());
         if (!voucher) {
+            saveAppliedVoucherCode('');
             return null;
         }
 
-        if (subtotal < Number(voucher.minOrder || 0)) {
+        if (subtotal < Number(voucher.minOrder || 0) || !voucherAppliesToCurrentCart(voucher)) {
             saveAppliedVoucherCode('');
             return null;
         }
@@ -5286,6 +6419,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="voucher-label">${voucher.label} - tối đa ${formatCurrency(maxDiscount)}</p>
                         <p class="voucher-meta">Đơn tối thiểu ${formatCurrency(minOrder)}</p>
                         <p class="voucher-meta">Ước tính giảm ${formatCurrency(discountAmount)}</p>
+                        <p class="voucher-meta">Danh mục: ${escapeHtml(categories)}</p>
+                        <p class="voucher-meta">${escapeHtml(expiryText)}</p>
                     </div>
                     <button
                         class="voucher-use-btn"
@@ -5450,7 +6585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             renderCatalog();
         }
-        alert(`Da them "${product.ten_san_pham}" vao gio hang.`);
+        showCenteredMessage(`\u0110\u00e3 th\u00eam "${sanitizeProductText(product.ten_san_pham || 's\u1ea3n ph\u1ea9m')}" v\u00e0o gi\u1ecf h\u00e0ng.`);
     }
 
     function renderCartView() {
@@ -5737,12 +6872,82 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCatalog();
     }
 
+    function restoreCachedHomeLanding() {
+        if (!shouldShowHomeRecommendations()) {
+            return false;
+        }
+
+        const cachedHomeSaleVisibleCount = getHomeShowcaseVisibleCount();
+        const hasCachedSale = Boolean(
+            homeSaleShowcase
+            && isHomeShowcaseEnabled()
+            && homeShowcaseRenderSignature
+            && homeShowcaseRenderSignature.endsWith(`visible:${cachedHomeSaleVisibleCount}`)
+            && getHomeShowcaseRail()
+        );
+        const hasCachedPersonalized = Boolean(
+            personalizedHomeView
+            && personalizedHomeRenderSignature
+            && personalizedHomeGrid?.children.length
+        );
+
+        if (!hasCachedSale && !hasCachedPersonalized) {
+            return false;
+        }
+
+        scheduleProductContainerClear();
+        collectionView.classList.add('hidden');
+        activeFilters.classList.add('hidden');
+        catalogToolbar.classList.add('hidden');
+        renderHomeFeatureStrip();
+
+        if (homeSaleShowcase) {
+            homeSaleShowcase.classList.toggle('hidden', !hasCachedSale);
+        }
+        if (hasCachedSale) {
+            syncHomeShowcaseWishlistButtons();
+            syncHomeShowcasePosition({ animate: false });
+            startHomeShowcaseRotation();
+        }
+
+        if (personalizedHomeView) {
+            personalizedHomeView.classList.toggle('hidden', !hasCachedPersonalized);
+        }
+        if (hasCachedPersonalized) {
+            syncFavoriteButtons();
+        }
+
+        const catalogContext = buildCatalogTrackingContext();
+        setTrackedPageContext(catalogContext.pageType, catalogContext.pageKey, catalogContext.extra);
+        syncMainView();
+        syncNavState();
+        syncCommerceAccessUI();
+        return true;
+    }
+
     function goToHomePage() {
         userDropdown.classList.add('hidden');
         closeMegaMenu();
+        productRenderToken += 1;
         currentView = 'home';
-        resetCatalogState({ clearQuery: true });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        productContainer.classList.add('hidden');
+        catalogToolbar.classList.add('hidden');
+        collectionView.classList.add('hidden');
+        activeFilters.classList.add('hidden');
+        resetCatalogState({ clearQuery: true, skipRender: true });
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        window.requestAnimationFrame(() => {
+            if (restoreCachedHomeLanding()) {
+                window.setTimeout(() => {
+                    if (currentView === 'home') {
+                        renderHomeSaleShowcase();
+                        void loadHomeRecommendations();
+                    }
+                }, 300);
+                return;
+            }
+            renderCatalog();
+        });
     }
 
     function removeFromWishlist(productId, options = {}) {
@@ -5983,6 +7188,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('address-default').checked = editingAddress?.isDefault || (!editingAddress && !addresses.length);
         addressFormTitle.textContent = editingAddress ? 'Cập nhật địa chỉ' : 'Thêm địa chỉ mới';
         await syncAddressAdministrativeSelects(editingAddress || null);
+        const selectedStreet = addressStreetSelect?.value || editingAddress?.street || '';
+        if (addressHouseNumberInput) {
+            addressHouseNumberInput.value = editingAddress?.houseNumber
+                || inferHouseNumberFromAddressLine(editingAddress?.line || '', selectedStreet)
+                || '';
+        }
         addressForm.classList.remove('hidden');
     }
 
@@ -6004,11 +7215,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedProvinceOption = addressCitySelect?.selectedOptions?.[0];
         const selectedWardOption = addressWardSelect?.selectedOptions?.[0];
         const districtValue = String(addressDistrictSelect?.value || '').trim();
+        const houseNumber = String(addressHouseNumberInput?.value || '').trim();
+        const street = String(addressStreetSelect?.value || '').trim();
+        const addressLine = buildAddressLine(houseNumber, street);
         const nextAddress = {
             id: addressId || generateRecordId('address'),
             recipient: document.getElementById('address-recipient').value.trim(),
             phone: document.getElementById('address-phone').value.trim(),
-            line: document.getElementById('address-line').value.trim(),
+            line: addressLine,
+            houseNumber,
+            street,
             ward: String(selectedWardOption?.textContent || '').trim(),
             wardCode: String(addressWardSelect?.value || '').trim(),
             district: districtValue,
@@ -6017,8 +7233,9 @@ document.addEventListener('DOMContentLoaded', () => {
             note: document.getElementById('address-note').value.trim(),
             isDefault: document.getElementById('address-default').checked
         };
+        document.getElementById('address-line').value = nextAddress.line;
 
-        if (!nextAddress.recipient || !nextAddress.phone || !nextAddress.line || !nextAddress.ward || !nextAddress.district || !nextAddress.city) {
+        if (!nextAddress.recipient || !nextAddress.phone || !nextAddress.houseNumber || !nextAddress.street || !nextAddress.ward || !nextAddress.district || !nextAddress.city) {
             addressFormError.textContent = 'Hãy nhập đầy đủ thông tin địa chỉ giao hàng.';
             addressFormError.classList.remove('hidden');
             return;
@@ -6261,6 +7478,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    async function promptCustomerAddressIfMissing() {
+        if (!currentUser || canAccessWorkspace() || getAddressBook().length) {
+            return false;
+        }
+
+        openAddressBookView();
+        await openAddressForm();
+        addressFormTitle.textContent = 'Thêm địa chỉ giao hàng đầu tiên';
+        return true;
+    }
+
     function openOrdersView() {
         if (!ensureCustomerAccess('Hãy đăng nhập để xem đơn hàng của bạn.')) {
             return;
@@ -6410,6 +7638,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCartView();
         renderCheckoutView();
         openOrdersView();
+        alert('Đặt hàng thành công. Đơn hàng sẽ được giao COD, chỉ hiển thị thanh toán thành công sau khi nhân viên xác nhận đã thu tiền.');
+        return;
         alert('Thanh toán thành công. Đơn hàng của bạn đã được lưu trong mục "Đơn hàng của bạn".');
     }
 
@@ -6527,6 +7757,9 @@ document.addEventListener('DOMContentLoaded', () => {
             cartSummaryTotal.textContent = formatCurrency(0);
             checkoutBtn.disabled = true;
             removeSelectedBtn.disabled = true;
+            cartRecommendationProducts = [];
+            cartRecommendationSignature = '';
+            renderCartRecommendations();
             return;
         }
 
@@ -6617,6 +7850,11 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutBtn.disabled = !hasSelected;
         removeSelectedBtn.disabled = !hasSelected;
         renderVoucherList(subtotal, appliedVoucher);
+        if (currentView === 'cart') {
+            void loadCartRecommendations();
+        } else {
+            renderCartRecommendations();
+        }
         repairRenderedContent();
     }
 
@@ -6803,8 +8041,17 @@ document.addEventListener('DOMContentLoaded', () => {
             window.__pbl3WorkspaceState = {
                 activeWorkspaceTab: '',
                 activeSupportThreadId: '',
+                supportThreadSearchQuery: '',
+                supportReplyDrafts: {},
+                supportReplySelectionStart: 0,
+                supportReplySelectionEnd: 0,
+                supportComposerFocusedThreadId: '',
+                pendingSupportPanelRefresh: false,
                 editingCategoryId: '',
                 editingVoucherCode: '',
+                managerVoucherCategoryFilter: 'all',
+                managerVoucherStatusFilter: 'all',
+                voucherAssignmentAccountKey: '',
                 managerBaseUsers: [],
                 managerBaseLoaded: false,
                 statsPreset: 'month',
@@ -6814,10 +8061,128 @@ document.addEventListener('DOMContentLoaded', () => {
                 accountCreatedPreset: 'custom',
                 accountCreatedStartDate: '',
                 accountCreatedEndDate: '',
+                staffProductSearchQuery: '',
+                staffProductBrandFilter: 'all',
+                staffProductCategoryFilter: 'all',
+                staffProductPriceFilter: 'all',
+                staffProductStockFilter: 'all',
+                staffOrderSearchQuery: '',
+                staffOrderStatusFilter: 'all',
+                staffOrderStartDate: '',
+                staffOrderEndDate: '',
+                staffCategorySearchQuery: '',
+                staffCategorySportFilter: 'all',
+                staffCategoryLabelFilter: 'all',
+                staffCategoryStatusFilter: 'all',
+                staffReviewSearchQuery: '',
+                staffReviewCategoryFilter: 'all',
+                staffReviewTypeFilter: 'all',
+                staffReviewRatingFilter: 'all',
+                staffReviewStatusFilter: 'all',
                 visibleAccountPasswords: {}
             };
         }
         return window.__pbl3WorkspaceState;
+    }
+
+    function getSupportReplyDraft(threadId) {
+        const state = getWorkspaceState();
+        const normalizedThreadId = String(threadId || '').trim();
+        if (!normalizedThreadId) {
+            return '';
+        }
+
+        const drafts = state.supportReplyDrafts && typeof state.supportReplyDrafts === 'object'
+            ? state.supportReplyDrafts
+            : {};
+        state.supportReplyDrafts = drafts;
+        return String(drafts[normalizedThreadId] || '');
+    }
+
+    function setSupportReplyDraft(threadId, value) {
+        const state = getWorkspaceState();
+        const normalizedThreadId = String(threadId || '').trim();
+        if (!normalizedThreadId) {
+            return;
+        }
+
+        const drafts = state.supportReplyDrafts && typeof state.supportReplyDrafts === 'object'
+            ? state.supportReplyDrafts
+            : {};
+        drafts[normalizedThreadId] = String(value || '');
+        state.supportReplyDrafts = drafts;
+    }
+
+    function clearSupportReplyDraft(threadId) {
+        const state = getWorkspaceState();
+        const normalizedThreadId = String(threadId || '').trim();
+        if (!normalizedThreadId || !state.supportReplyDrafts || typeof state.supportReplyDrafts !== 'object') {
+            return;
+        }
+
+        delete state.supportReplyDrafts[normalizedThreadId];
+        if (state.supportComposerFocusedThreadId === normalizedThreadId) {
+            state.supportComposerFocusedThreadId = '';
+        }
+        state.supportReplySelectionStart = 0;
+        state.supportReplySelectionEnd = 0;
+    }
+
+    function captureSupportComposerState() {
+        const input = document.getElementById('support-staff-input');
+        const threadId = document.getElementById('support-thread-id')?.value
+            || getWorkspaceState().activeSupportThreadId
+            || '';
+        if (!input || !threadId) {
+            return;
+        }
+
+        const state = getWorkspaceState();
+        setSupportReplyDraft(threadId, input.value || '');
+        state.supportReplySelectionStart = Number.isInteger(input.selectionStart)
+            ? input.selectionStart
+            : String(input.value || '').length;
+        state.supportReplySelectionEnd = Number.isInteger(input.selectionEnd)
+            ? input.selectionEnd
+            : state.supportReplySelectionStart;
+        state.supportComposerFocusedThreadId = document.activeElement === input ? threadId : '';
+    }
+
+    function shouldDeferSupportPanelRefresh() {
+        return document.activeElement?.id === 'support-staff-input';
+    }
+
+    function restoreSupportComposerState(threadId) {
+        const normalizedThreadId = String(threadId || '').trim();
+        const input = document.getElementById('support-staff-input');
+        if (!normalizedThreadId || !input) {
+            return;
+        }
+
+        const state = getWorkspaceState();
+        const draft = getSupportReplyDraft(normalizedThreadId);
+        if (input.value !== draft) {
+            input.value = draft;
+        }
+
+        if (state.supportComposerFocusedThreadId !== normalizedThreadId) {
+            return;
+        }
+
+        input.focus();
+        const start = Math.min(Number(state.supportReplySelectionStart ?? draft.length), input.value.length);
+        const end = Math.min(Number(state.supportReplySelectionEnd ?? start), input.value.length);
+        input.setSelectionRange(start, end);
+    }
+
+    function flushPendingSupportPanelRefresh() {
+        const state = getWorkspaceState();
+        if (!state.pendingSupportPanelRefresh || shouldDeferSupportPanelRefresh()) {
+            return;
+        }
+
+        state.pendingSupportPanelRefresh = false;
+        renderSupportManagementPanel();
     }
 
     function getAccountKeyForUser(user) {
@@ -6825,9 +8190,122 @@ document.addEventListener('DOMContentLoaded', () => {
             user?.id
             ?? user?.username
             ?? user?.ten_dang_nhap
+            ?? user?.tenDangNhap
             ?? user?.email
+            ?? user?.phone
+            ?? user?.sdt
             ?? ''
         ).trim();
+    }
+
+    function normalizeAccountIdentity(value) {
+        return normalizeText(value).replace(/[^a-z0-9@._+-]/g, '');
+    }
+
+    function normalizePhoneIdentity(value) {
+        const digits = String(value || '').replace(/\D/g, '');
+        if (!digits) {
+            return '';
+        }
+        if (digits.startsWith('84') && digits.length === 11) {
+            return `0${digits.slice(2)}`;
+        }
+        return digits;
+    }
+
+    function getAccountIdentityCandidates(user = currentUser) {
+        const username = user?.username || user?.ten_dang_nhap || user?.tenDangNhap || '';
+        const phone = user?.sdt || user?.phone || user?.so_dien_thoai || user?.soDienThoai || '';
+        const candidates = [
+            user?.id,
+            username,
+            user?.email,
+            phone,
+            user?.ho_ten,
+            user?.hoTen,
+            user?.name,
+            user?.display_name,
+            username ? `user-customer-${username}` : '',
+            username ? `customer-${username}` : ''
+        ];
+
+        return new Set(
+            candidates
+                .map(normalizeAccountIdentity)
+                .filter(Boolean)
+        );
+    }
+
+    function getAccountPhoneCandidates(user = currentUser) {
+        return new Set([
+            user?.sdt,
+            user?.phone,
+            user?.so_dien_thoai,
+            user?.soDienThoai
+        ].map(normalizePhoneIdentity).filter(Boolean));
+    }
+
+    function orderBelongsToUser(order, user = currentUser) {
+        if (!user || !order) {
+            return false;
+        }
+
+        const candidates = getAccountIdentityCandidates(user);
+        const phoneCandidates = getAccountPhoneCandidates(user);
+        const customer = order.customer || {};
+        const orderIdentities = [
+            order.accountKey,
+            ...(Array.isArray(order.accountKeyAliases) ? order.accountKeyAliases : []),
+            customer.id,
+            customer.username,
+            customer.ten_dang_nhap,
+            customer.tenDangNhap,
+            customer.email,
+            customer.phone,
+            customer.sdt,
+            customer.so_dien_thoai,
+            customer.soDienThoai,
+            customer.name,
+            customer.ho_ten,
+            customer.hoTen,
+            order.address?.recipient,
+            order.address?.phone
+        ]
+            .map(normalizeAccountIdentity)
+            .filter(Boolean);
+
+        if (orderIdentities.some(identity => candidates.has(identity))) {
+            return true;
+        }
+
+        const orderPhoneIdentities = [
+            customer.phone,
+            customer.sdt,
+            customer.so_dien_thoai,
+            customer.soDienThoai,
+            order.address?.phone
+        ].map(normalizePhoneIdentity).filter(Boolean);
+
+        if (orderPhoneIdentities.some(phone => phoneCandidates.has(phone))) {
+            return true;
+        }
+
+        const usernameIdentity = normalizeAccountIdentity(user?.username || user?.ten_dang_nhap || user?.tenDangNhap || '');
+        if (!usernameIdentity) {
+            return false;
+        }
+
+        const technicalOrderIdentities = [
+            order.accountKey,
+            ...(Array.isArray(order.accountKeyAliases) ? order.accountKeyAliases : []),
+            customer.id,
+            customer.username,
+            customer.ten_dang_nhap,
+            customer.tenDangNhap,
+            customer.email
+        ].map(normalizeAccountIdentity).filter(Boolean);
+
+        return technicalOrderIdentities.some(identity => identity.includes(usernameIdentity));
     }
 
     function isStaffWorkspaceUser(user = currentUser) {
@@ -6865,10 +8343,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function getCurrentCustomerProfile() {
         return {
             id: currentUser?.id || '',
-            name: currentUser?.ho_ten || currentUser?.name || '',
-            username: currentUser?.username || currentUser?.ten_dang_nhap || '',
+            name: currentUser?.ho_ten || currentUser?.hoTen || currentUser?.name || '',
+            username: currentUser?.username || currentUser?.ten_dang_nhap || currentUser?.tenDangNhap || '',
             email: currentUser?.email || '',
-            phone: currentUser?.sdt || currentUser?.so_dien_thoai || ''
+            phone: currentUser?.sdt || currentUser?.phone || currentUser?.so_dien_thoai || currentUser?.soDienThoai || ''
         };
     }
 
@@ -6887,6 +8365,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function normalizeWorkspaceOrder(order, meta = {}) {
         const customer = order?.customer || meta.customer || {};
         const accountKey = String(order?.accountKey || meta.accountKey || getAccountKeyForUser(customer) || '').trim();
+        const accountKeyAliases = [
+            accountKey,
+            order?.accountKey,
+            meta.accountKey,
+            ...(Array.isArray(order?.accountKeyAliases) ? order.accountKeyAliases : [])
+        ].map(value => String(value || '').trim()).filter(Boolean);
         const normalizedItems = Array.isArray(order?.items)
             ? order.items.map(item => ({
                 productId: String(item?.productId || ''),
@@ -6905,7 +8389,9 @@ document.addEventListener('DOMContentLoaded', () => {
             code: String(order?.code || buildOrderCode()),
             createdAt: order?.createdAt || new Date().toISOString(),
             status: String(order?.status || 'Chờ xác nhận'),
-            paymentStatus: String(order?.paymentStatus || 'Thanh toán thành công'),
+            paymentStatus: String(order?.paymentStatus || PAYMENT_STATUS_PENDING_COD),
+            paidAt: String(order?.paidAt || ''),
+            paymentConfirmedBy: String(order?.paymentConfirmedBy || ''),
             supportRequest: String(order?.supportRequest || ''),
             supportStatus: String(order?.supportStatus || ''),
             supportNote: String(order?.supportNote || ''),
@@ -6919,12 +8405,13 @@ document.addEventListener('DOMContentLoaded', () => {
             address: order?.address || {},
             customer: {
                 id: customer?.id || '',
-                name: customer?.name || customer?.ho_ten || '',
-                username: customer?.username || customer?.ten_dang_nhap || '',
+                name: customer?.name || customer?.ho_ten || customer?.hoTen || order?.address?.recipient || '',
+                username: customer?.username || customer?.ten_dang_nhap || customer?.tenDangNhap || '',
                 email: customer?.email || '',
-                phone: customer?.phone || customer?.sdt || ''
+                phone: customer?.phone || customer?.sdt || customer?.so_dien_thoai || customer?.soDienThoai || order?.address?.phone || ''
             },
             accountKey,
+            accountKeyAliases: Array.from(new Set(accountKeyAliases)),
             items: normalizedItems
         };
     }
@@ -6999,7 +8486,30 @@ document.addEventListener('DOMContentLoaded', () => {
         readAllScopedOrders().forEach(order => {
             if (!merged.has(order.id)) {
                 merged.set(order.id, order);
+                return;
             }
+
+            const existing = merged.get(order.id);
+            merged.set(order.id, normalizeWorkspaceOrder({
+                ...order,
+                ...existing,
+                accountKey: existing.accountKey || order.accountKey,
+                accountKeyAliases: [
+                    existing.accountKey,
+                    order.accountKey,
+                    ...(Array.isArray(existing.accountKeyAliases) ? existing.accountKeyAliases : []),
+                    ...(Array.isArray(order.accountKeyAliases) ? order.accountKeyAliases : [])
+                ],
+                customer: {
+                    ...(order.customer || {}),
+                    ...(existing.customer || {}),
+                    id: existing.customer?.id || order.customer?.id || '',
+                    name: existing.customer?.name || order.customer?.name || '',
+                    username: existing.customer?.username || order.customer?.username || '',
+                    email: existing.customer?.email || order.customer?.email || '',
+                    phone: existing.customer?.phone || order.customer?.phone || ''
+                }
+            }));
         });
 
         return Array.from(merged.values())
@@ -7015,11 +8525,65 @@ document.addEventListener('DOMContentLoaded', () => {
         syncWorkspaceOrderToScopedHistory(normalizedOrder);
     }
 
+    function isOrderPaymentConfirmed(order = {}) {
+        const paymentText = normalizeText(order.paymentStatus || '');
+        return paymentText.includes('thanh toan thanh cong')
+            || paymentText.includes('da ghi nhan thanh toan')
+            || paymentText.includes('da thu tien');
+    }
+
+    function isRevenueOrder(order = {}) {
+        return normalizeText(order.status || '') !== 'da huy' && isOrderPaymentConfirmed(order);
+    }
+
+    function buildOrderPaymentPatchForStatus(status, order = {}) {
+        const normalizedStatus = normalizeText(status || '');
+        if (normalizedStatus === 'da huy') {
+            return {
+                paymentStatus: PAYMENT_STATUS_CANCELLED,
+                paidAt: '',
+                paymentConfirmedBy: ''
+            };
+        }
+
+        if (normalizedStatus === 'da giao' && !isOrderPaymentConfirmed(order)) {
+            return {
+                paymentStatus: PAYMENT_STATUS_DELIVERED_WAITING_CONFIRMATION,
+                paidAt: '',
+                paymentConfirmedBy: ''
+            };
+        }
+
+        if (!isOrderPaymentConfirmed(order) && normalizeText(order.paymentStatus || '') === 'khong ghi nhan thanh toan') {
+            return {
+                paymentStatus: PAYMENT_STATUS_PENDING_COD,
+                paidAt: '',
+                paymentConfirmedBy: ''
+            };
+        }
+
+        return {};
+    }
+
+    function buildConfirmCodPaymentPatch() {
+        return {
+            paymentStatus: PAYMENT_STATUS_PAID,
+            paidAt: new Date().toISOString(),
+            paymentConfirmedBy: currentUser?.username || currentUser?.ten_dang_nhap || currentUser?.ho_ten || 'staff'
+        };
+    }
+
     function updateWorkspaceOrder(orderId, patch = {}) {
         const orders = getWorkspaceOrders();
         const nextOrders = orders.map(order => (
             String(order.id) === String(orderId)
-                ? normalizeWorkspaceOrder({ ...order, ...patch })
+                ? normalizeWorkspaceOrder({
+                    ...order,
+                    ...patch,
+                    ...(Object.prototype.hasOwnProperty.call(patch, 'status') && !Object.prototype.hasOwnProperty.call(patch, 'paymentStatus')
+                        ? buildOrderPaymentPatchForStatus(patch.status, order)
+                        : {})
+                })
                 : order
         ));
         saveWorkspaceOrders(nextOrders);
@@ -7040,12 +8604,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const scopedOrders = readStorage(storageKey, []);
-        const workspaceIndex = new Map(getWorkspaceOrders().map(order => [String(order.id), order]));
+        const mergedOrders = new Map();
 
-        return (Array.isArray(scopedOrders) ? scopedOrders : []).map(order => {
-            const workspaceOrder = workspaceIndex.get(String(order?.id || ''));
-            return workspaceOrder ? { ...order, ...workspaceOrder } : order;
+        (Array.isArray(scopedOrders) ? scopedOrders : []).forEach(order => {
+            const normalized = normalizeWorkspaceOrder(order, {
+                accountKey: getCurrentAccountStorageSuffix(),
+                customer: getCurrentCustomerProfile()
+            });
+            mergedOrders.set(String(normalized.id), normalized);
         });
+
+        getWorkspaceOrders()
+            .filter(order => orderBelongsToUser(order))
+            .forEach(order => {
+                const orderId = String(order.id);
+                const existingOrder = mergedOrders.get(orderId) || {};
+                mergedOrders.set(orderId, normalizeWorkspaceOrder({
+                    ...existingOrder,
+                    ...order,
+                    accountKey: order.accountKey || existingOrder.accountKey || getCurrentAccountStorageSuffix(),
+                    customer: {
+                        ...getCurrentCustomerProfile(),
+                        ...(existingOrder.customer || {}),
+                        ...(order.customer || {})
+                    }
+                }));
+            });
+
+        const nextOrders = Array.from(mergedOrders.values())
+            .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0));
+
+        localStorage.setItem(storageKey, JSON.stringify(nextOrders));
+        return nextOrders;
     }
 
     function saveOrderHistory(orders) {
@@ -7165,32 +8755,379 @@ document.addEventListener('DOMContentLoaded', () => {
         return (Array.isArray(AVAILABLE_VOUCHERS) ? AVAILABLE_VOUCHERS : []).map((voucher, index) => normalizeVoucherRecord(voucher, index));
     }
 
+    function normalizeVoucherCategories(categories) {
+        const source = Array.isArray(categories)
+            ? categories
+            : String(categories || 'Tất cả').split(/[,\n/|;]+/);
+        const normalized = getUniqueValues(source
+            .map(category => sanitizeProductText(category).trim())
+            .filter(Boolean));
+        return normalized.length ? normalized : ['Tất cả'];
+    }
+
     function normalizeVoucherRecord(voucher = {}, index = 0) {
         const code = String(voucher.code || `VC${index + 1}`).trim().toUpperCase();
         return {
             code,
-            label: String(voucher.label || '').trim(),
+            label: sanitizeProductText(voucher.label || '').trim(),
             percent: Number(voucher.percent || 0),
             minOrder: Number(voucher.minOrder || 0),
             maxDiscount: Number(voucher.maxDiscount || 0),
+            categories: normalizeVoucherCategories(voucher.categories || voucher.category || voucher.danh_muc),
+            expiresAt: String(voucher.expiresAt || voucher.expiredAt || voucher.expiryDate || '').trim(),
             status: String(voucher.status || 'Hoạt động').trim() || 'Hoạt động'
         };
     }
 
     function getManagedVoucherCatalog() {
-        const stored = readStorage('pbl3_managed_vouchers', null);
-        const source = Array.isArray(stored) && stored.length ? stored : getBaseVoucherCatalog();
-        return source.map((voucher, index) => normalizeVoucherRecord(voucher, index));
+        const stored = readStorage(MANAGED_VOUCHERS_KEY, null);
+        const baseCatalog = getBaseVoucherCatalog();
+        const storedVersion = localStorage.getItem(MANAGED_VOUCHERS_VERSION_KEY) || '';
+
+        if (!Array.isArray(stored) || !stored.length) {
+            return baseCatalog;
+        }
+
+        const storedCatalog = stored.map((voucher, index) => normalizeVoucherRecord(voucher, index));
+        if (storedVersion === MANAGED_VOUCHERS_VERSION) {
+            return storedCatalog;
+        }
+
+        const mergedCatalog = new Map(baseCatalog.map(voucher => [voucher.code, voucher]));
+        storedCatalog.forEach(voucher => {
+            const baseVoucher = mergedCatalog.get(voucher.code) || {};
+            mergedCatalog.set(voucher.code, normalizeVoucherRecord({
+                ...baseVoucher,
+                ...voucher,
+                categories: voucher.categories?.length ? voucher.categories : baseVoucher.categories,
+                expiresAt: voucher.expiresAt || baseVoucher.expiresAt,
+                status: voucher.status || baseVoucher.status
+            }));
+        });
+        const merged = Array.from(mergedCatalog.values());
+        saveManagedVoucherCatalog(merged);
+        return merged;
     }
 
     function saveManagedVoucherCatalog(vouchers) {
-        localStorage.setItem('pbl3_managed_vouchers', JSON.stringify(
+        localStorage.setItem(MANAGED_VOUCHERS_KEY, JSON.stringify(
             (Array.isArray(vouchers) ? vouchers : []).map((voucher, index) => normalizeVoucherRecord(voucher, index))
         ));
+        localStorage.setItem(MANAGED_VOUCHERS_VERSION_KEY, MANAGED_VOUCHERS_VERSION);
+    }
+
+    function getVoucherCategories(voucher = {}) {
+        return normalizeVoucherCategories(voucher.categories || voucher.category || voucher.danh_muc);
+    }
+
+    function getVoucherExpiryTimestamp(voucher = {}) {
+        const expiresAt = String(voucher.expiresAt || '').trim();
+        if (!expiresAt) {
+            return null;
+        }
+
+        const date = new Date(`${expiresAt}T23:59:59.999`);
+        return Number.isNaN(date.getTime()) ? null : date.getTime();
+    }
+
+    function isVoucherExpired(voucher = {}) {
+        const expiryTimestamp = getVoucherExpiryTimestamp(voucher);
+        return expiryTimestamp !== null && expiryTimestamp < Date.now();
+    }
+
+    function isVoucherTemporarilyDisabled(voucher = {}) {
+        return normalizeText(voucher.status || '') === 'tam khoa';
+    }
+
+    function isVoucherUsable(voucher = {}) {
+        return !isVoucherTemporarilyDisabled(voucher) && !isVoucherExpired(voucher);
+    }
+
+    function getVoucherDisplayStatus(voucher = {}) {
+        if (isVoucherExpired(voucher)) {
+            return 'Hết hạn';
+        }
+        return sanitizeProductText(voucher.status || 'Hoạt động').trim() || 'Hoạt động';
+    }
+
+    function getVoucherAssignmentAccountKey(user = currentUser) {
+        if (!user || canAccessWorkspace(user)) {
+            return '';
+        }
+        return getAccountKeyForUser(user);
+    }
+
+    function getVoucherAssignmentAccountLabel(user = {}) {
+        const fullName = sanitizeProductText(user.ho_ten || user.name || user.display_name || '').trim();
+        const username = String(user.username || user.ten_dang_nhap || user.email || user.id || '').trim();
+        if (fullName && username) {
+            return `${fullName} (${username})`;
+        }
+        return fullName || username || 'Khách hàng';
+    }
+
+    function normalizeVoucherAssignmentEntry(entry = {}, fallbackKey = '') {
+        entry = entry || {};
+        const accountKey = String(entry.accountKey || fallbackKey || '').trim();
+        const rawCodes = Array.isArray(entry)
+            ? entry
+            : Array.isArray(entry.codes)
+                ? entry.codes
+                : String(entry.codes || '').split(/[,\s]+/);
+        const codes = getUniqueValues(rawCodes
+            .map(code => String(code || '').trim().toUpperCase())
+            .filter(Boolean));
+
+        return {
+            accountKey,
+            accountLabel: sanitizeProductText(entry.accountLabel || '').trim(),
+            codes,
+            updatedAt: String(entry.updatedAt || '').trim()
+        };
+    }
+
+    function getVoucherAssignmentStore() {
+        const stored = readStorage(VOUCHER_ASSIGNMENTS_KEY, null);
+        if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+            return {};
+        }
+
+        return Object.entries(stored).reduce((store, [accountKey, entry]) => {
+            const normalized = normalizeVoucherAssignmentEntry(entry, accountKey);
+            if (normalized.accountKey) {
+                store[normalized.accountKey] = normalized;
+            }
+            return store;
+        }, {});
+    }
+
+    function saveVoucherAssignmentStore(store = {}) {
+        const normalizedStore = Object.entries(store).reduce((result, [accountKey, entry]) => {
+            const normalized = normalizeVoucherAssignmentEntry(entry, accountKey);
+            if (normalized.accountKey) {
+                result[normalized.accountKey] = normalized;
+            }
+            return result;
+        }, {});
+        localStorage.setItem(VOUCHER_ASSIGNMENTS_KEY, JSON.stringify(normalizedStore));
+        localStorage.setItem(VOUCHER_ASSIGNMENTS_VERSION_KEY, VOUCHER_ASSIGNMENTS_VERSION);
+    }
+
+    function getDefaultVoucherCodesForAccount(account = currentUser) {
+        const accountKey = getVoucherAssignmentAccountKey(account);
+        const accountSignature = normalizeText([
+            accountKey,
+            account?.username,
+            account?.ten_dang_nhap,
+            account?.email
+        ].filter(Boolean).join(' '));
+
+        if (accountSignature.includes('khachhang01') || accountSignature.includes('customer-001')) {
+            return ['HOTDEAL10', 'FOOTBALL12', 'BADMINTON12', 'SEAGAMES15'];
+        }
+
+        if (accountSignature.includes('khachhang02') || accountSignature.includes('customer-002')) {
+            return ['VOLLEY10', 'BASKET15', 'TABLE08', 'SPORT25'];
+        }
+
+        const categoryCodes = ['FOOTBALL12', 'VOLLEY10', 'BASKET15', 'TABLE08', 'BADMINTON12', 'RUNGYM18'];
+        const hash = accountSignature.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        return getUniqueValues([
+            'HOTDEAL10',
+            categoryCodes[hash % categoryCodes.length],
+            categoryCodes[(hash + 3) % categoryCodes.length]
+        ]);
+    }
+
+    function pruneExpiredVoucherAssignments(store = getVoucherAssignmentStore()) {
+        const voucherMap = new Map(getManagedVoucherCatalog().map(voucher => [voucher.code, voucher]));
+        let changed = false;
+        const nextStore = Object.entries(store).reduce((result, [accountKey, entry]) => {
+            const normalized = normalizeVoucherAssignmentEntry(entry, accountKey);
+            const nextCodes = normalized.codes.filter(code => {
+                const voucher = voucherMap.get(code);
+                return voucher && !isVoucherExpired(voucher);
+            });
+
+            if (nextCodes.length !== normalized.codes.length) {
+                changed = true;
+            }
+
+            result[normalized.accountKey] = {
+                ...normalized,
+                codes: nextCodes
+            };
+            return result;
+        }, {});
+
+        if (changed) {
+            saveVoucherAssignmentStore(nextStore);
+        }
+
+        return nextStore;
+    }
+
+    function ensureVoucherAssignmentsForAccount(account = currentUser) {
+        const accountKey = getVoucherAssignmentAccountKey(account);
+        if (!accountKey) {
+            return [];
+        }
+
+        const store = pruneExpiredVoucherAssignments(getVoucherAssignmentStore());
+        if (!store[accountKey]) {
+            store[accountKey] = {
+                accountKey,
+                accountLabel: getVoucherAssignmentAccountLabel(account),
+                codes: getDefaultVoucherCodesForAccount(account),
+                updatedAt: new Date().toISOString()
+            };
+            saveVoucherAssignmentStore(store);
+        } else if (!store[accountKey].accountLabel) {
+            store[accountKey].accountLabel = getVoucherAssignmentAccountLabel(account);
+            saveVoucherAssignmentStore(store);
+        }
+
+        return store[accountKey].codes || [];
+    }
+
+    function getAssignedVoucherCodesForCurrentAccount() {
+        const accountKey = getVoucherAssignmentAccountKey();
+        if (!accountKey) {
+            return [];
+        }
+
+        ensureVoucherAssignmentsForAccount(currentUser);
+        const store = pruneExpiredVoucherAssignments(getVoucherAssignmentStore());
+        return store[accountKey]?.codes || [];
+    }
+
+    function assignVoucherToAccount(accountKey, code) {
+        const normalizedAccountKey = String(accountKey || '').trim();
+        const normalizedCode = String(code || '').trim().toUpperCase();
+        if (!normalizedAccountKey || !normalizedCode) {
+            return false;
+        }
+
+        const account = getManagedAccounts().find(item => getAccountKeyForUser(item) === normalizedAccountKey) || {};
+        const voucher = getManagedVoucherCatalog().find(item => item.code === normalizedCode);
+        if (!voucher || isVoucherExpired(voucher)) {
+            return false;
+        }
+
+        const store = pruneExpiredVoucherAssignments(getVoucherAssignmentStore());
+        const currentEntry = normalizeVoucherAssignmentEntry(store[normalizedAccountKey] || {}, normalizedAccountKey);
+        store[normalizedAccountKey] = {
+            ...currentEntry,
+            accountKey: normalizedAccountKey,
+            accountLabel: getVoucherAssignmentAccountLabel(account),
+            codes: getUniqueValues([...currentEntry.codes, normalizedCode]),
+            updatedAt: new Date().toISOString()
+        };
+        saveVoucherAssignmentStore(store);
+        return true;
+    }
+
+    function unassignVoucherFromAccount(accountKey, code) {
+        const normalizedAccountKey = String(accountKey || '').trim();
+        const normalizedCode = String(code || '').trim().toUpperCase();
+        if (!normalizedAccountKey || !normalizedCode) {
+            return false;
+        }
+
+        const store = getVoucherAssignmentStore();
+        const currentEntry = normalizeVoucherAssignmentEntry(store[normalizedAccountKey] || {}, normalizedAccountKey);
+        store[normalizedAccountKey] = {
+            ...currentEntry,
+            codes: currentEntry.codes.filter(item => item !== normalizedCode),
+            updatedAt: new Date().toISOString()
+        };
+        saveVoucherAssignmentStore(store);
+
+        if (getVoucherAssignmentAccountKey() === normalizedAccountKey && getAppliedVoucherCode() === normalizedCode) {
+            saveAppliedVoucherCode('');
+        }
+
+        return true;
+    }
+
+    function removeVoucherCodeFromAllAssignments(code) {
+        const normalizedCode = String(code || '').trim().toUpperCase();
+        if (!normalizedCode) {
+            return;
+        }
+
+        const store = getVoucherAssignmentStore();
+        let changed = false;
+        Object.entries(store).forEach(([accountKey, entry]) => {
+            const normalized = normalizeVoucherAssignmentEntry(entry, accountKey);
+            const nextCodes = normalized.codes.filter(item => item !== normalizedCode);
+            if (nextCodes.length !== normalized.codes.length) {
+                store[accountKey] = {
+                    ...normalized,
+                    codes: nextCodes,
+                    updatedAt: new Date().toISOString()
+                };
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            saveVoucherAssignmentStore(store);
+        }
+    }
+
+    function replaceVoucherCodeInAssignments(oldCode, newCode) {
+        const normalizedOldCode = String(oldCode || '').trim().toUpperCase();
+        const normalizedNewCode = String(newCode || '').trim().toUpperCase();
+        if (!normalizedOldCode || !normalizedNewCode || normalizedOldCode === normalizedNewCode) {
+            return;
+        }
+
+        const store = getVoucherAssignmentStore();
+        let changed = false;
+        Object.entries(store).forEach(([accountKey, entry]) => {
+            const normalized = normalizeVoucherAssignmentEntry(entry, accountKey);
+            if (!normalized.codes.includes(normalizedOldCode)) {
+                return;
+            }
+
+            store[accountKey] = {
+                ...normalized,
+                codes: getUniqueValues(normalized.codes.map(code => code === normalizedOldCode ? normalizedNewCode : code)),
+                updatedAt: new Date().toISOString()
+            };
+            changed = true;
+        });
+
+        if (changed) {
+            saveVoucherAssignmentStore(store);
+        }
+    }
+
+    function getCustomerVisibleVouchers() {
+        const assignedCodes = getAssignedVoucherCodesForCurrentAccount();
+        if (!assignedCodes.length) {
+            return [];
+        }
+
+        const catalogByCode = new Map(getManagedVoucherCatalog().map(voucher => [voucher.code, voucher]));
+        return assignedCodes
+            .map(code => catalogByCode.get(code))
+            .filter(Boolean)
+            .filter(isVoucherUsable);
+    }
+
+    function voucherAppliesToCurrentCart(voucher = {}) {
+        const selectedItems = getHydratedCartItems().filter(item => item.selected);
+        if (!selectedItems.length) {
+            return true;
+        }
+
+        return selectedItems.some(item => voucherAppliesToProduct(voucher, item.product));
     }
 
     function getVoucherByCode(code) {
-        return getManagedVoucherCatalog().find(voucher => voucher.code === String(code || '').trim().toUpperCase()) || null;
+        return getCustomerVisibleVouchers().find(voucher => voucher.code === String(code || '').trim().toUpperCase()) || null;
     }
 
     function renderVoucherList(subtotal, appliedVoucher, options = {}) {
@@ -7199,14 +9136,17 @@ document.addEventListener('DOMContentLoaded', () => {
             noteElement = voucherAppliedNote,
             clearButton = clearVoucherBtn
         } = options;
-        const vouchers = getManagedVoucherCatalog().filter(voucher => normalizeText(voucher.status) !== 'tam khoa');
+        const vouchers = getCustomerVisibleVouchers();
 
         listElement.innerHTML = vouchers.map(voucher => {
             const minOrder = Number(voucher.minOrder || 0);
             const maxDiscount = Number(voucher.maxDiscount || 0);
             const discountAmount = getVoucherDiscountAmount(voucher, subtotal);
-            const isEligible = subtotal >= minOrder && subtotal > 0;
+            const matchesCart = voucherAppliesToCurrentCart(voucher);
+            const isEligible = subtotal >= minOrder && subtotal > 0 && matchesCart;
             const isActive = appliedVoucher?.code === voucher.code;
+            const categories = getVoucherCategories(voucher).join(', ');
+            const expiryText = voucher.expiresAt ? `Hết hạn: ${formatDateTimeDisplay(`${voucher.expiresAt}T23:59:59`)}` : 'Không giới hạn hạn dùng';
 
             return `
                 <article class="voucher-card ${isEligible ? '' : 'disabled'} ${isActive ? 'active' : ''}">
@@ -7337,7 +9277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function normalizeSupportThreadRecord(thread = {}) {
         return {
             id: String(thread.id || generateRecordId('support')),
-            accountKey: String(thread.accountKey || ''),
+            accountKey: String(thread.accountKey || '').trim(),
             customer: {
                 id: thread.customer?.id || '',
                 name: thread.customer?.name || '',
@@ -7357,16 +9297,205 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function mergeSupportCustomerInfo(primary = {}, fallback = {}) {
+        return {
+            id: primary.id || fallback.id || '',
+            name: primary.name || fallback.name || '',
+            username: primary.username || fallback.username || '',
+            email: primary.email || fallback.email || '',
+            phone: primary.phone || fallback.phone || ''
+        };
+    }
+
+    function dedupeSupportThreadsByAccount(threads = []) {
+        const threadMap = new Map();
+
+        (Array.isArray(threads) ? threads : [])
+            .map(thread => normalizeSupportThreadRecord(thread))
+            .filter(thread => thread.accountKey)
+            .forEach(thread => {
+                const existing = threadMap.get(thread.accountKey);
+                if (!existing) {
+                    threadMap.set(thread.accountKey, thread);
+                    return;
+                }
+
+                const messages = [...(existing.messages || []), ...(thread.messages || [])]
+                    .sort((left, right) => new Date(left.createdAt || 0) - new Date(right.createdAt || 0));
+                const updatedAt = new Date(existing.updatedAt || 0) > new Date(thread.updatedAt || 0)
+                    ? existing.updatedAt
+                    : thread.updatedAt;
+
+                threadMap.set(thread.accountKey, normalizeSupportThreadRecord({
+                    ...existing,
+                    ...thread,
+                    id: existing.id || thread.id,
+                    accountKey: thread.accountKey,
+                    customer: mergeSupportCustomerInfo(existing.customer, thread.customer),
+                    updatedAt,
+                    messages
+                }));
+            });
+
+        return Array.from(threadMap.values())
+            .sort((left, right) => new Date(right.updatedAt || 0) - new Date(left.updatedAt || 0));
+    }
+
     function getSupportThreads() {
         const stored = readStorage('pbl3_support_threads', []);
-        return (Array.isArray(stored) ? stored : []).map(thread => normalizeSupportThreadRecord(thread))
-            .sort((left, right) => new Date(right.updatedAt || 0) - new Date(left.updatedAt || 0));
+        return dedupeSupportThreadsByAccount(stored);
     }
 
     function saveSupportThreads(threads) {
         localStorage.setItem('pbl3_support_threads', JSON.stringify(
-            (Array.isArray(threads) ? threads : []).map(thread => normalizeSupportThreadRecord(thread))
+            dedupeSupportThreadsByAccount(threads)
         ));
+    }
+
+    function replaceSupportThreads(threads) {
+        saveSupportThreads(Array.isArray(threads) ? threads : []);
+        return getSupportThreads();
+    }
+
+    function upsertSupportThread(thread) {
+        if (!thread) {
+            return null;
+        }
+
+        const normalizedThread = normalizeSupportThreadRecord(thread);
+        const nextThreads = getSupportThreads().filter(item => (
+            String(item.id) !== String(normalizedThread.id)
+            && String(item.accountKey) !== String(normalizedThread.accountKey)
+        ));
+        nextThreads.unshift(normalizedThread);
+        saveSupportThreads(nextThreads);
+        return normalizedThread;
+    }
+
+    async function syncCustomerSupportThreadFromApi(createIfMissing = false) {
+        if (!currentUser || canAccessWorkspace()) {
+            return null;
+        }
+
+        try {
+            const response = await apiRequest(`/support/me?createIfMissing=${createIfMissing ? 'true' : 'false'}`);
+            return response ? upsertSupportThread(response) : null;
+        } catch (error) {
+            return getCustomerSupportThread(createIfMissing);
+        }
+    }
+
+    async function syncWorkspaceSupportThreadsFromApi() {
+        if (!canAccessWorkspace()) {
+            return [];
+        }
+
+        try {
+            const response = await apiRequest('/support/threads');
+            return replaceSupportThreads(response);
+        } catch (error) {
+            return getSupportThreads();
+        }
+    }
+
+    async function sendCustomerSupportMessageToApi(text) {
+        const content = String(text || '').trim();
+        if (!content) {
+            return null;
+        }
+
+        try {
+            const response = await apiRequest('/support/me/messages', {
+                method: 'POST',
+                body: { text: content }
+            });
+            return response ? upsertSupportThread(response) : null;
+        } catch (error) {
+            const thread = getCustomerSupportThread(true);
+            if (thread) {
+                appendSupportMessage(thread.id, 'customer', content);
+                return getCustomerSupportThread(false);
+            }
+            throw error;
+        }
+    }
+
+    async function sendWorkspaceSupportMessageToApi(threadId, text) {
+        const content = String(text || '').trim();
+        if (!threadId || !content) {
+            return null;
+        }
+
+        try {
+            const response = await apiRequest(`/support/threads/${encodeURIComponent(threadId)}/messages`, {
+                method: 'POST',
+                body: { text: content }
+            });
+            return response ? upsertSupportThread(response) : null;
+        } catch (error) {
+            appendSupportMessage(threadId, 'staff', content);
+            return getSupportThreads().find(thread => String(thread.id) === String(threadId)) || null;
+        }
+    }
+
+    async function updateSupportThreadStatusToApi(threadId, status) {
+        const nextStatus = String(status || '').trim();
+        if (!threadId || !nextStatus) {
+            return null;
+        }
+
+        try {
+            const response = await apiRequest(`/support/threads/${encodeURIComponent(threadId)}/status`, {
+                method: 'PUT',
+                body: { status: nextStatus }
+            });
+            return response ? upsertSupportThread(response) : null;
+        } catch (error) {
+            const threads = getSupportThreads().map(thread => (
+                String(thread.id) === String(threadId)
+                    ? normalizeSupportThreadRecord({ ...thread, status: nextStatus, updatedAt: new Date().toISOString() })
+                    : thread
+            ));
+            saveSupportThreads(threads);
+            return getSupportThreads().find(thread => String(thread.id) === String(threadId)) || null;
+        }
+    }
+
+    async function refreshSupportUiFromApi() {
+        if (canAccessWorkspace() && currentView === 'workspace' && getWorkspaceState().activeWorkspaceTab === 'support-mgmt') {
+            const deferRefresh = shouldDeferSupportPanelRefresh();
+            await syncWorkspaceSupportThreadsFromApi();
+            if (deferRefresh) {
+                getWorkspaceState().pendingSupportPanelRefresh = true;
+                return;
+            }
+            renderSupportManagementPanel();
+            return;
+        }
+
+        const supportPanel = document.getElementById('support-chat-panel');
+        if (currentUser && !canAccessWorkspace() && supportPanel && !supportPanel.classList.contains('hidden')) {
+            await syncCustomerSupportThreadFromApi(false);
+            renderCustomerSupportChat();
+        }
+    }
+
+    function isSupportBusinessHours(date = new Date()) {
+        const minutes = date.getHours() * 60 + date.getMinutes();
+        return minutes >= (8 * 60) && minutes <= (21 * 60);
+    }
+
+    function getSupportAutoReply(text = '', date = new Date()) {
+        if (!isSupportBusinessHours(date)) {
+            return 'Xin lỗi, hiện đã ngoài giờ làm việc của Flare Fitness (08:00 - 21:00 hằng ngày). Tin nhắn của bạn đã được ghi nhận và nhân viên sẽ phản hồi trong giờ làm việc gần nhất.';
+        }
+
+        const normalizedText = normalizeText(text);
+        if (/(^|\s)(xin chao|chao|hello|hi|alo)(\s|$)/.test(normalizedText)) {
+            return 'Xin chào, Flare Fitness đã nhận được tin nhắn của bạn. Nhân viên tư vấn sẽ hỗ trợ bạn trong cuộc trò chuyện này.';
+        }
+
+        return '';
     }
 
     function getCustomerSupportThread(createIfMissing = false) {
@@ -7381,11 +9510,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const threads = getSupportThreads();
         let thread = threads.find(item => item.accountKey === accountKey) || null;
+        const customerProfile = getCurrentCustomerProfile();
 
         if (!thread && createIfMissing) {
             thread = normalizeSupportThreadRecord({
+                id: `support-${accountKey}`,
                 accountKey,
-                customer: getCurrentCustomerProfile(),
+                customer: customerProfile,
                 status: 'Đang mở',
                 messages: [{
                     sender: 'staff',
@@ -7397,6 +9528,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveSupportThreads(threads);
         }
 
+        if (thread) {
+            const mergedCustomer = mergeSupportCustomerInfo(customerProfile, thread.customer);
+            if (JSON.stringify(mergedCustomer) !== JSON.stringify(thread.customer)) {
+                thread = normalizeSupportThreadRecord({ ...thread, customer: mergedCustomer });
+                saveSupportThreads(threads.map(item => item.id === thread.id ? thread : item));
+            }
+        }
+
         return thread;
     }
 
@@ -7406,29 +9545,106 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const createdAt = new Date();
+        let foundThread = false;
         const threads = getSupportThreads().map(thread => {
             if (String(thread.id) !== String(threadId)) {
                 return thread;
             }
 
+            foundThread = true;
+            const messages = [
+                ...(Array.isArray(thread.messages) ? thread.messages : []),
+                {
+                    id: generateRecordId('message'),
+                    sender,
+                    text: content,
+                    createdAt: createdAt.toISOString()
+                }
+            ];
+            const autoReply = sender === 'customer' ? getSupportAutoReply(content, createdAt) : '';
+            if (autoReply) {
+                messages.push({
+                    id: generateRecordId('message'),
+                    sender: 'staff',
+                    text: autoReply,
+                    createdAt: new Date(createdAt.getTime() + 1000).toISOString()
+                });
+            }
+
             return normalizeSupportThreadRecord({
                 ...thread,
-                updatedAt: new Date().toISOString(),
-                messages: [
-                    ...(Array.isArray(thread.messages) ? thread.messages : []),
-                    {
-                        id: generateRecordId('message'),
-                        sender,
-                        text: content,
-                        createdAt: new Date().toISOString()
-                    }
-                ]
+                updatedAt: new Date(createdAt.getTime() + (autoReply ? 1000 : 0)).toISOString(),
+                messages
             });
         });
+
+        if (!foundThread) {
+            return;
+        }
 
         saveSupportThreads(threads);
         renderCustomerSupportChat();
         renderInternalWorkspace();
+    }
+
+    function getSupportThreadCustomerName(thread = {}) {
+        return sanitizeProductText(thread.customer?.name || thread.customer?.username || 'Khách hàng').trim() || 'Khách hàng';
+    }
+
+    function getSupportThreadPreview(thread = {}) {
+        const messages = Array.isArray(thread.messages) ? thread.messages : [];
+        const lastMessage = messages[messages.length - 1];
+        return sanitizeProductText(lastMessage?.text || 'Chưa có nội dung').trim() || 'Chưa có nội dung';
+    }
+
+    function getSupportThreadInitials(thread = {}) {
+        const name = getSupportThreadCustomerName(thread);
+        const initials = name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(part => part.charAt(0).toUpperCase())
+            .join('');
+        return initials || 'KH';
+    }
+
+    function getSupportThreadSearchTarget(thread = {}) {
+        return normalizeText([
+            thread.id,
+            thread.accountKey,
+            thread.status,
+            thread.customer?.id,
+            thread.customer?.name,
+            thread.customer?.username,
+            thread.customer?.email,
+            thread.customer?.phone,
+            getSupportThreadPreview(thread)
+        ].filter(Boolean).join(' '));
+    }
+
+    function hasCustomerSupportMessage(thread = {}) {
+        return (Array.isArray(thread.messages) ? thread.messages : [])
+            .some(message => message.sender === 'customer' && String(message.text || '').trim());
+    }
+
+    function isCustomerSupportThread(thread = {}) {
+        const accountKey = String(thread.accountKey || '').trim();
+        if (!accountKey) {
+            return false;
+        }
+
+        const account = getManagedAccounts().find(item => {
+            const itemKeys = [
+                getAccountKeyForUser(item),
+                item.id,
+                item.username,
+                item.email
+            ].map(value => String(value || '').trim()).filter(Boolean);
+            return itemKeys.includes(accountKey);
+        });
+
+        return !account || getCanonicalRole(account.role) === 'Khách hàng';
     }
 
     function getCustomerSummaries() {
@@ -7485,7 +9701,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const current = accountMap.get(accountKey);
             current.orderCount += 1;
-            if (normalizeText(order.status) !== 'da huy') {
+            if (isRevenueOrder(order)) {
                 current.totalSpent += Number(order.total || 0);
             }
             if (!current.lastOrderDate || new Date(order.createdAt) > new Date(current.lastOrderDate)) {
@@ -7550,7 +9766,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const productMap = new Map();
 
         getOrdersInStatsRange()
-            .filter(order => normalizeText(order.status) !== 'da huy')
+            .filter(isRevenueOrder)
             .forEach(order => {
                 (order.items || []).forEach(item => {
                     const key = item.sku || item.productId || item.name;
@@ -7654,6 +9870,111 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    renderStaffOrdersPanel = function renderStaffOrdersPanel() {
+        const panel = document.getElementById('staff-orders-panel');
+        if (!panel) {
+            return;
+        }
+
+        const state = getWorkspaceState();
+        const allOrders = getWorkspaceOrders();
+        const orders = filterStaffOrders(allOrders);
+        const today = formatDateInputValue(new Date());
+        const statusOptions = ['Chờ xác nhận', 'Đang chuẩn bị', 'Đang giao', 'Đã giao', 'Đã hủy'];
+
+        panel.innerHTML = `
+            <div class="workspace-table-card order-filter-card">
+                <div class="workspace-card-head">
+                    <div>
+                        <h3>Tìm và lọc đơn hàng</h3>
+                        <p class="customer-card-meta">Tìm theo mã đơn, khách hàng, số điện thoại hoặc voucher; lọc theo ngày tạo và trạng thái.</p>
+                    </div>
+                    <span class="workspace-chip">${orders.length}/${allOrders.length} đơn</span>
+                </div>
+                <div class="workspace-toolbar order-toolbar">
+                    <div class="workspace-toolbar-search form-group">
+                        <label for="staff-order-search-input">Tìm kiếm đơn hàng</label>
+                        <input id="staff-order-search-input" class="workspace-inline-input" type="search" value="${escapeHtml(state.staffOrderSearchQuery || '')}" placeholder="Nhập mã đơn / khách hàng / SĐT / voucher">
+                    </div>
+                    <div class="workspace-toolbar-inline order-toolbar-inline">
+                        <div class="form-group">
+                            <label for="staff-order-status-filter">Trạng thái</label>
+                            <select id="staff-order-status-filter" class="workspace-inline-select">
+                                <option value="all">Tất cả trạng thái</option>
+                                ${statusOptions.map(status => `<option value="${escapeHtml(status)}" ${normalizeText(state.staffOrderStatusFilter || 'all') === normalizeText(status) ? 'selected' : ''}>${escapeHtml(status)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-order-start-date">Từ ngày</label>
+                            <input id="staff-order-start-date" class="workspace-inline-input" type="date" max="${today}" value="${escapeHtml(state.staffOrderStartDate || '')}">
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-order-end-date">Đến ngày</label>
+                            <input id="staff-order-end-date" class="workspace-inline-input" type="date" max="${today}" value="${escapeHtml(state.staffOrderEndDate || '')}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="workspace-card">
+                <div class="workspace-card-head">
+                    <div>
+                        <h3>Danh sách đơn hàng</h3>
+                        <p class="customer-card-meta">Nhân viên có thể theo dõi đơn mới, cập nhật trạng thái và hỗ trợ xử lý hủy / đổi trả ngay tại đây.</p>
+                    </div>
+                    <span class="workspace-chip">${orders.length} đơn</span>
+                </div>
+                ${orders.length ? `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Ngày tạo</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Xử lý nhanh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${orders.map(order => `
+                                <tr>
+                                    <td>
+                                        <strong>${escapeHtml(order.code)}</strong>
+                                        <div class="customer-card-meta">${escapeHtml(order.voucherCode || 'Không áp mã')}</div>
+                                    </td>
+                                    <td>
+                                        <strong>${escapeHtml(order.customer?.name || order.address?.recipient || 'Khách lẻ')}</strong>
+                                        <div class="customer-card-meta">${escapeHtml(order.customer?.phone || order.address?.phone || '')}</div>
+                                    </td>
+                                    <td>${escapeHtml(formatDateTimeDisplay(order.createdAt))}</td>
+                                    <td>
+                                        <strong>${formatCurrency(order.total)}</strong>
+                                        <div class="customer-card-meta">${escapeHtml(order.paymentStatus || PAYMENT_STATUS_PENDING_COD)}</div>
+                                        ${order.paidAt ? `<div class="customer-card-meta">Thu tiền: ${escapeHtml(formatDateTimeDisplay(order.paidAt))}</div>` : ''}
+                                    </td>
+                                    <td>
+                                        <select class="workspace-inline-select" data-order-status-select data-order-id="${escapeHtml(order.id)}">
+                                            ${statusOptions.map(status => `<option value="${escapeHtml(status)}" ${normalizeText(status) === normalizeText(order.status) ? 'selected' : ''}>${escapeHtml(status)}</option>`).join('')}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="workspace-row-actions">
+                                            ${normalizeText(order.status) === 'da giao' && !isOrderPaymentConfirmed(order) ? `<button class="login-submit-btn text-bold" type="button" data-order-action="confirm-cod-payment" data-order-id="${escapeHtml(order.id)}">Xác nhận đã thu tiền</button>` : ''}
+                                            <button class="secondary-btn text-bold" type="button" data-order-action="request-return" data-order-id="${escapeHtml(order.id)}">Đổi trả</button>
+                                            <button class="secondary-btn text-bold" type="button" data-order-action="cancel-order" data-order-id="${escapeHtml(order.id)}">Hủy đơn</button>
+                                        </div>
+                                        ${order.supportRequest ? `<div class="customer-card-meta">Yêu cầu: ${escapeHtml(order.supportRequest)} · ${escapeHtml(order.supportStatus || 'Mới tạo')}</div>` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : '<div class="workspace-empty">Không có đơn hàng phù hợp với bộ lọc hiện tại.</div>'}
+            </div>
+        `;
+        repairTextNodes(panel);
+    };
+
     function renderCategoriesPanel() {
         const panel = document.getElementById('categories-mgmt-panel');
         if (!panel) {
@@ -7746,7 +10067,141 @@ document.addEventListener('DOMContentLoaded', () => {
                 </aside>
             </div>
         `;
+        repairRenderedContent();
     }
+
+    renderCategoriesPanel = function renderCategoriesPanel() {
+        const panel = document.getElementById('categories-mgmt-panel');
+        if (!panel) {
+            return;
+        }
+
+        const state = getWorkspaceState();
+        const allCategories = getManagedCategories();
+        const categories = filterStaffCategories(allCategories);
+        const editing = allCategories.find(category => category.id === state.editingCategoryId) || null;
+        const uniqueSports = [...new Set(allCategories.map(category => String(category.sport || '').trim()).filter(Boolean))]
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+        const uniqueLabels = [...new Set(allCategories.map(category => String(category.label || '').trim()).filter(Boolean))]
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+        const uniqueStatuses = [...new Set(allCategories.map(category => String(category.status || 'Đang dùng').trim()).filter(Boolean))]
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+
+        panel.innerHTML = `
+            <div class="workspace-grid">
+                <div class="workspace-table-card">
+                    <div class="workspace-card-head">
+                        <div>
+                            <h3>Danh mục sản phẩm</h3>
+                            <p class="customer-card-meta">Nhân viên có thể thêm, sửa hoặc ẩn danh mục để quản lý nội bộ.</p>
+                        </div>
+                        <span class="workspace-chip">${categories.length}/${allCategories.length} danh mục</span>
+                    </div>
+                    <div class="workspace-toolbar category-toolbar">
+                        <div class="workspace-toolbar-search form-group">
+                            <label for="staff-category-search-input">Tìm kiếm danh mục</label>
+                            <input id="staff-category-search-input" class="workspace-inline-input" type="search" value="${escapeHtml(state.staffCategorySearchQuery || '')}" placeholder="Nhập môn / tên danh mục / trạng thái">
+                        </div>
+                        <div class="workspace-toolbar-inline category-toolbar-inline">
+                            <div class="form-group">
+                                <label for="staff-category-sport-filter">Môn</label>
+                                <select id="staff-category-sport-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả môn</option>
+                                    ${uniqueSports.map(sport => `<option value="${escapeHtml(sport)}" ${normalizeText(state.staffCategorySportFilter || 'all') === normalizeText(sport) ? 'selected' : ''}>${escapeHtml(sport)}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-category-label-filter">Danh mục</label>
+                                <select id="staff-category-label-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả danh mục</option>
+                                    ${uniqueLabels.map(label => `<option value="${escapeHtml(label)}" ${normalizeText(state.staffCategoryLabelFilter || 'all') === normalizeText(label) ? 'selected' : ''}>${escapeHtml(label)}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-category-status-filter">Trạng thái</label>
+                                <select id="staff-category-status-filter" class="workspace-inline-select">
+                                    <option value="all">Tất cả trạng thái</option>
+                                    ${uniqueStatuses.map(status => `<option value="${escapeHtml(status)}" ${normalizeText(state.staffCategoryStatusFilter || 'all') === normalizeText(status) ? 'selected' : ''}>${escapeHtml(status)}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    ${categories.length ? `
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Môn</th>
+                                    <th>Nhóm danh mục</th>
+                                    <th>Số sản phẩm</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${categories.map(category => `
+                                    <tr>
+                                        <td>${escapeHtml(category.sport || '')}</td>
+                                        <td>${escapeHtml(category.label || '')}</td>
+                                        <td>${Number(category.count || 0)}</td>
+                                        <td><span class="workspace-chip">${escapeHtml(category.status || 'Đang dùng')}</span></td>
+                                        <td>
+                                            <div class="workspace-row-actions">
+                                                <button class="secondary-btn text-bold" type="button" data-category-action="edit" data-category-id="${escapeHtml(category.id)}">Sửa</button>
+                                                <button class="cart-text-btn danger" type="button" data-category-action="delete" data-category-id="${escapeHtml(category.id)}">Xóa</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="workspace-empty">Không có danh mục phù hợp với bộ lọc hiện tại.</div>'}
+                </div>
+                <aside class="workspace-side-card">
+                    <form id="category-form" class="workspace-form">
+                        <div class="workspace-side-head">
+                            <h3>${editing ? 'Cập nhật danh mục' : 'Thêm danh mục mới'}</h3>
+                            <button id="reset-category-form" class="cart-text-btn secondary" type="button">Làm mới</button>
+                        </div>
+                        <input id="category-id" type="hidden" value="${escapeHtml(editing?.id || '')}">
+                        <div class="form-grid compact-grid">
+                            <div class="form-group">
+                                <label class="text-14" for="category-sport">Môn thể thao</label>
+                                <input id="category-sport" type="text" value="${escapeHtml(editing?.sport || '')}" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="category-label">Tên danh mục</label>
+                                <input id="category-label" type="text" value="${escapeHtml(editing?.label || '')}" required>
+                            </div>
+                            <div class="form-group form-group-full">
+                                <label class="text-14" for="category-status">Trạng thái</label>
+                                <select id="category-status">
+                                    <option value="Đang dùng" ${normalizeText(editing?.status || 'Đang dùng') === 'dang dung' ? 'selected' : ''}>Đang dùng</option>
+                                    <option value="Tạm ẩn" ${normalizeText(editing?.status || '') === 'tam an' ? 'selected' : ''}>Tạm ẩn</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="login-submit-btn text-bold" type="submit">${editing ? 'Lưu thay đổi' : 'Thêm danh mục'}</button>
+                    </form>
+                    <div class="workspace-side-divider"></div>
+                    <section class="workspace-form workspace-mini-panel">
+                        <div class="workspace-side-head">
+                            <h3>Thiết lập trang chủ</h3>
+                            <span class="workspace-chip">${isHomeShowcaseEnabled() ? 'Đang hiển thị' : 'Đang ẩn'}</span>
+                        </div>
+                        <p class="customer-card-meta">Quản lí có thể ẩn hoặc hiện khung Special Sale ở trang chủ. Khi tắt khung này, các phần bên dưới sẽ tự động dồn lên.</p>
+                        <button
+                            class="secondary-btn text-bold"
+                            type="button"
+                            data-home-showcase-toggle="${isHomeShowcaseEnabled() ? 'hide' : 'show'}"
+                        >
+                            ${isHomeShowcaseEnabled() ? 'Ẩn khung Special Sale' : 'Hiện khung Special Sale'}
+                        </button>
+                    </section>
+                </aside>
+            </div>
+        `;
+        repairTextNodes(panel);
+    };
 
     function renderReturnsPanel() {
         const panel = document.getElementById('returns-mgmt-panel');
@@ -7789,50 +10244,108 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const reviews = getManagedReviews();
+        const state = getWorkspaceState();
+        const allReviews = getManagedReviews();
+        const reviews = filterStaffReviews(allReviews);
+        const reviewProducts = allReviews.map(review => getReviewProduct(review));
+        const uniqueCategories = getUniqueValues(reviewProducts
+            .map(product => sanitizeProductText(product.danh_muc || getCanonicalSportFromProduct(product)).trim())
+            .filter(Boolean))
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+        const uniqueTypes = getUniqueValues(reviewProducts
+            .map(product => getReviewProductTypeLabel(product))
+            .filter(Boolean))
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+        const uniqueStatuses = getUniqueValues(allReviews
+            .map(review => sanitizeProductText(review.status || 'Hiển thị').trim())
+            .filter(Boolean))
+            .sort((left, right) => left.localeCompare(right, 'vi'));
         panel.innerHTML = `
             <div class="workspace-card">
                 <div class="workspace-card-head">
                     <div>
                         <h3>Quản lý đánh giá</h3>
-                        <p class="customer-card-meta">Ẩn hoặc hiển thị đánh giá để giữ nội dung phù hợp trước khi đưa lên trang sản phẩm.</p>
+                        <p class="customer-card-meta">Tìm theo sản phẩm, khách đánh giá hoặc nội dung; lọc theo danh mục, loại sản phẩm, điểm và trạng thái.</p>
                     </div>
-                    <span class="workspace-chip">${reviews.length} đánh giá</span>
+                    <span class="workspace-chip">${reviews.length}/${allReviews.length} đánh giá</span>
                 </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th>Khách đánh giá</th>
-                            <th>Điểm</th>
-                            <th>Nội dung</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${reviews.map(review => {
-                            const product = findProductById(review.productId) || {};
-                            return `
-                                <tr>
-                                    <td>${escapeHtml(product.ten_san_pham || 'Sản phẩm đã ẩn')}</td>
-                                    <td>${escapeHtml(review.reviewer || 'Khách hàng')}</td>
-                                    <td>${'★'.repeat(Number(review.rating || 0))}</td>
-                                    <td>${escapeHtml(review.content || '')}</td>
-                                    <td><span class="workspace-chip">${escapeHtml(review.status || 'Hiển thị')}</span></td>
-                                    <td>
-                                        <div class="workspace-row-actions">
-                                            <button class="secondary-btn text-bold" type="button" data-review-action="toggle" data-review-id="${escapeHtml(review.id)}">${review.status === 'Hiển thị' ? 'Ẩn' : 'Hiển thị'}</button>
-                                            <button class="cart-text-btn danger" type="button" data-review-action="delete" data-review-id="${escapeHtml(review.id)}">Xóa</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
+                <div class="workspace-toolbar review-toolbar">
+                    <div class="workspace-toolbar-search form-group">
+                        <label for="staff-review-search-input">Tìm kiếm đánh giá</label>
+                        <input id="staff-review-search-input" class="workspace-inline-input" type="search" value="${escapeHtml(state.staffReviewSearchQuery || '')}" placeholder="Nhập sản phẩm / khách / nội dung đánh giá">
+                    </div>
+                    <div class="workspace-toolbar-inline review-toolbar-inline">
+                        <div class="form-group">
+                            <label for="staff-review-category-filter">Danh mục</label>
+                            <select id="staff-review-category-filter" class="workspace-inline-select">
+                                <option value="all">Tất cả danh mục</option>
+                                ${uniqueCategories.map(category => `<option value="${escapeHtml(category)}" ${normalizeText(state.staffReviewCategoryFilter || 'all') === normalizeText(category) ? 'selected' : ''}>${escapeHtml(category)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-review-type-filter">Loại sản phẩm</label>
+                            <select id="staff-review-type-filter" class="workspace-inline-select">
+                                <option value="all">Tất cả loại sản phẩm</option>
+                                ${uniqueTypes.map(type => `<option value="${escapeHtml(type)}" ${normalizeText(state.staffReviewTypeFilter || 'all') === normalizeText(type) ? 'selected' : ''}>${escapeHtml(type)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-review-rating-filter">Điểm</label>
+                            <select id="staff-review-rating-filter" class="workspace-inline-select">
+                                <option value="all">Tất cả điểm</option>
+                                ${[5, 4, 3, 2, 1].map(rating => `<option value="${rating}" ${String(state.staffReviewRatingFilter || 'all') === String(rating) ? 'selected' : ''}>${rating} sao</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-review-status-filter">Trạng thái</label>
+                            <select id="staff-review-status-filter" class="workspace-inline-select">
+                                <option value="all">Tất cả trạng thái</option>
+                                ${uniqueStatuses.map(status => `<option value="${escapeHtml(status)}" ${normalizeText(state.staffReviewStatusFilter || 'all') === normalizeText(status) ? 'selected' : ''}>${escapeHtml(status)}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                ${reviews.length ? `
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Danh mục</th>
+                                <th>Loại</th>
+                                <th>Khách đánh giá</th>
+                                <th>Điểm</th>
+                                <th>Nội dung</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reviews.map(review => {
+                                const product = getReviewProduct(review);
+                                return `
+                                    <tr>
+                                        <td>${escapeHtml(product.ten_san_pham || 'Sản phẩm đã ẩn')}</td>
+                                        <td>${escapeHtml(product.danh_muc || getCanonicalSportFromProduct(product) || 'Không rõ')}</td>
+                                        <td>${escapeHtml(getReviewProductTypeLabel(product) || 'Không rõ')}</td>
+                                        <td>${escapeHtml(review.reviewer || 'Khách hàng')}</td>
+                                        <td>${'★'.repeat(Math.max(0, Math.min(5, Number(review.rating || 0))))}</td>
+                                        <td>${escapeHtml(review.content || '')}</td>
+                                        <td><span class="workspace-chip">${escapeHtml(review.status || 'Hiển thị')}</span></td>
+                                        <td>
+                                            <div class="workspace-row-actions">
+                                                <button class="secondary-btn text-bold" type="button" data-review-action="toggle" data-review-id="${escapeHtml(review.id)}">${review.status === 'Hiển thị' ? 'Ẩn' : 'Hiển thị'}</button>
+                                                <button class="cart-text-btn danger" type="button" data-review-action="delete" data-review-id="${escapeHtml(review.id)}">Xóa</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                ` : '<div class="workspace-empty">Không có đánh giá phù hợp với bộ lọc hiện tại.</div>'}
             </div>
         `;
+        repairTextNodes(panel);
     }
 
     function renderSupportManagementPanel() {
@@ -7841,40 +10354,76 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const threads = getSupportThreads();
+        captureSupportComposerState();
+
+        const threads = getSupportThreads().filter(thread => hasCustomerSupportMessage(thread) && isCustomerSupportThread(thread));
         const state = getWorkspaceState();
         if (!threads.length) {
-            panel.innerHTML = '<div class="workspace-empty">Chưa có cuộc trò chuyện nào từ khách hàng. Khung chat sẽ xuất hiện cho khách hàng ngay trên cửa sổ chính.</div>';
+            panel.innerHTML = '<div class="workspace-empty">Chưa có khách hàng nào gửi tin nhắn hỗ trợ. Khi khách hàng đăng nhập và nhắn tin, hệ thống sẽ tạo một cuộc trò chuyện riêng cho tài khoản đó.</div>';
+            repairTextNodes(panel);
             return;
         }
 
-        const activeThread = threads.find(thread => thread.id === state.activeSupportThreadId) || threads[0];
+        const searchQuery = normalizeText(state.supportThreadSearchQuery || '');
+        const visibleThreads = searchQuery
+            ? threads.filter(thread => getSupportThreadSearchTarget(thread).includes(searchQuery))
+            : threads;
+        const activeThread = visibleThreads.find(thread => thread.id === state.activeSupportThreadId)
+            || threads.find(thread => thread.id === state.activeSupportThreadId)
+            || visibleThreads[0]
+            || threads[0];
         state.activeSupportThreadId = activeThread?.id || '';
+        const activeCustomerName = getSupportThreadCustomerName(activeThread);
+        const activeCustomerContact = [activeThread.customer?.email, activeThread.customer?.phone]
+            .filter(Boolean)
+            .join(' · ');
 
         panel.innerHTML = `
-            <div class="support-layout">
-                <div class="support-thread-list">
-                    ${threads.map(thread => `
-                        <button class="support-thread-item ${thread.id === activeThread.id ? 'active' : ''}" type="button" data-support-thread="${escapeHtml(thread.id)}">
-                            <h4>${escapeHtml(thread.customer?.name || thread.customer?.username || 'Khách hàng')}</h4>
-                            <div class="support-thread-meta">${escapeHtml(thread.customer?.email || '')}</div>
-                            <div class="support-thread-meta">${escapeHtml(thread.messages?.[thread.messages.length - 1]?.text || 'Chưa có nội dung')}</div>
-                            <div class="support-thread-meta">${escapeHtml(formatDateTimeDisplay(thread.updatedAt))} · ${escapeHtml(thread.status)}</div>
-                        </button>
-                    `).join('')}
-                </div>
-                <div class="support-conversation">
-                    <div class="workspace-card-head">
+            <div class="support-message-page">
+                <aside class="support-sidebar">
+                    <div class="support-sidebar-head">
                         <div>
-                            <h3>${escapeHtml(activeThread.customer?.name || activeThread.customer?.username || 'Khách hàng')}</h3>
-                            <p class="customer-card-meta">${escapeHtml(activeThread.customer?.phone || activeThread.customer?.email || '')}</p>
+                            <p class="section-eyebrow">Hỗ trợ khách hàng</p>
+                            <h3>Đoạn chat</h3>
+                        </div>
+                        <span class="workspace-chip">${visibleThreads.length}/${threads.length}</span>
+                    </div>
+                    <div class="support-thread-search">
+                        <span aria-hidden="true">⌕</span>
+                        <input id="support-thread-search-input" type="search" value="${escapeHtml(state.supportThreadSearchQuery || '')}" placeholder="Tìm tên, email, tài khoản...">
+                    </div>
+                    <div class="support-thread-list">
+                        ${visibleThreads.length ? visibleThreads.map(thread => {
+                            const isActive = thread.id === activeThread.id;
+                            return `
+                                <button class="support-thread-item ${isActive ? 'active' : ''}" type="button" data-support-thread="${escapeHtml(thread.id)}">
+                                    <span class="support-thread-avatar">${escapeHtml(getSupportThreadInitials(thread))}</span>
+                                    <span class="support-thread-summary">
+                                        <span class="support-thread-name">${escapeHtml(getSupportThreadCustomerName(thread))}</span>
+                                        <span class="support-thread-preview">${escapeHtml(getSupportThreadPreview(thread))}</span>
+                                        <span class="support-thread-meta">Tài khoản: ${escapeHtml(thread.accountKey)} · ${escapeHtml(formatDateTimeDisplay(thread.updatedAt))}</span>
+                                    </span>
+                                    <span class="support-thread-status">${escapeHtml(thread.status)}</span>
+                                </button>
+                            `;
+                        }).join('') : '<div class="workspace-empty compact">Không tìm thấy cuộc trò chuyện phù hợp.</div>'}
+                    </div>
+                </aside>
+                <section class="support-conversation">
+                    <header class="support-conversation-head">
+                        <div class="support-conversation-profile">
+                            <span class="support-thread-avatar large">${escapeHtml(getSupportThreadInitials(activeThread))}</span>
+                            <div>
+                                <h3>${escapeHtml(activeCustomerName)}</h3>
+                                <p class="customer-card-meta">${escapeHtml(activeCustomerContact || activeThread.accountKey || 'Tài khoản khách hàng')}</p>
+                            </div>
                         </div>
                         <select id="support-thread-status" class="workspace-inline-select" data-support-thread-status>
                             <option value="Đang mở" ${activeThread.status === 'Đang mở' ? 'selected' : ''}>Đang mở</option>
                             <option value="Đang xử lý" ${activeThread.status === 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
                             <option value="Đã đóng" ${activeThread.status === 'Đã đóng' ? 'selected' : ''}>Đã đóng</option>
                         </select>
-                    </div>
+                    </header>
                     <div class="support-conversation-body">
                         ${activeThread.messages.map(message => `
                             <article class="support-message ${message.sender === 'staff' ? 'staff' : 'customer'}">
@@ -7888,9 +10437,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <textarea id="support-staff-input" rows="3" placeholder="Nhập nội dung phản hồi cho khách hàng..." required></textarea>
                         <button class="login-submit-btn text-bold" type="submit">Gửi phản hồi</button>
                     </form>
-                </div>
+                </section>
             </div>
         `;
+        repairTextNodes(panel);
+        const supportStaffInput = document.getElementById('support-staff-input');
+        if (supportStaffInput) {
+            supportStaffInput.value = getSupportReplyDraft(activeThread.id);
+        }
+        restoreSupportComposerState(activeThread.id);
     }
 
     function renderCustomersPanel() {
@@ -7951,10 +10506,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const state = getStatsFilterState();
         const orders = getOrdersInStatsRange();
-        const revenueOrders = orders.filter(order => normalizeText(order.status) !== 'da huy');
+        const revenueOrders = orders.filter(isRevenueOrder);
         const revenue = revenueOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
         const averageOrder = revenueOrders.length ? revenue / revenueOrders.length : 0;
-        const deliveredOrders = revenueOrders.filter(order => normalizeText(order.status) === 'da giao').length;
+        const deliveredOrders = orders.filter(order => normalizeText(order.status) === 'da giao').length;
         const cancelledOrders = orders.filter(order => normalizeText(order.status) === 'da huy').length;
         const behaviorOverviewMarkup = adminBehaviorOverviewError
             ? `
@@ -8249,8 +10804,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const state = getWorkspaceState();
-        const vouchers = getManagedVoucherCatalog();
-        const editing = vouchers.find(voucher => voucher.code === state.editingVoucherCode) || null;
+        const allVouchers = getManagedVoucherCatalog();
+        const categoryFilter = normalizeText(state.managerVoucherCategoryFilter || 'all');
+        const statusFilter = String(state.managerVoucherStatusFilter || 'all');
+        const vouchers = allVouchers.filter(voucher => {
+            const matchesCategory = categoryFilter === 'all'
+                || getVoucherCategories(voucher).some(category => normalizeText(category) === categoryFilter);
+            const expired = isVoucherExpired(voucher);
+            const matchesStatus = statusFilter === 'all'
+                || (statusFilter === 'active' && !expired && !isVoucherTemporarilyDisabled(voucher))
+                || (statusFilter === 'expired' && expired);
+            return matchesCategory && matchesStatus;
+        });
+        const uniqueVoucherCategories = getUniqueValues(allVouchers.flatMap(voucher => getVoucherCategories(voucher)));
+        const editing = allVouchers.find(voucher => voucher.code === state.editingVoucherCode) || null;
+        if (isManagerWorkspaceUser() && !state.managerBaseLoaded) {
+            void ensureManagerAccountsLoaded().then(() => {
+                if (document.getElementById('vouchers-mgmt-panel')) {
+                    renderVouchersPanel();
+                }
+            });
+        }
+        const customerAccounts = getManagedAccounts().filter(account => !canAccessWorkspace(account));
+        const voucherAssignments = pruneExpiredVoucherAssignments(getVoucherAssignmentStore());
+        const activeAssignableVouchers = allVouchers.filter(isVoucherUsable);
+        const fallbackAssignmentAccountKey = customerAccounts.length ? getAccountKeyForUser(customerAccounts[0]) : '';
+        const selectedAssignmentAccountKey = customerAccounts.some(account => getAccountKeyForUser(account) === state.voucherAssignmentAccountKey)
+            ? state.voucherAssignmentAccountKey
+            : fallbackAssignmentAccountKey;
+        state.voucherAssignmentAccountKey = selectedAssignmentAccountKey;
+        const selectedAssignment = voucherAssignments[selectedAssignmentAccountKey] || { codes: [] };
+        const selectedAssignedCodes = Array.isArray(selectedAssignment.codes) ? selectedAssignment.codes : [];
+        const selectedAssignedCodeSet = new Set(selectedAssignedCodes);
+        const selectedAssignedVouchers = selectedAssignedCodes
+            .map(code => allVouchers.find(voucher => voucher.code === code))
+            .filter(Boolean);
+        const unassignedAssignableVouchers = activeAssignableVouchers.filter(voucher => !selectedAssignedCodeSet.has(voucher.code));
 
         panel.innerHTML = `
             <div class="workspace-grid">
@@ -8260,7 +10849,24 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h3>Quản lý ưu đãi</h3>
                             <p class="customer-card-meta">Tạo hoặc chỉnh sửa mã khuyến mãi dùng ngay trong giỏ hàng và bước thanh toán.</p>
                         </div>
-                        <span class="workspace-chip">${vouchers.length} voucher</span>
+                        <span class="workspace-chip">${vouchers.length}/${allVouchers.length} voucher</span>
+                    </div>
+                    <div class="workspace-filter-grid">
+                        <div class="form-group">
+                            <label for="manager-voucher-category-filter">Danh mục</label>
+                            <select id="manager-voucher-category-filter" class="workspace-inline-select">
+                                <option value="all">Tất cả danh mục</option>
+                                ${uniqueVoucherCategories.map(category => `<option value="${escapeHtml(category)}" ${categoryFilter === normalizeText(category) ? 'selected' : ''}>${escapeHtml(category)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="manager-voucher-status-filter">Thời hạn</label>
+                            <select id="manager-voucher-status-filter" class="workspace-inline-select">
+                                <option value="all" ${statusFilter === 'all' ? 'selected' : ''}>Tất cả ưu đãi</option>
+                                <option value="active" ${statusFilter === 'active' ? 'selected' : ''}>Còn thời hạn</option>
+                                <option value="expired" ${statusFilter === 'expired' ? 'selected' : ''}>Đã hết hạn</option>
+                            </select>
+                        </div>
                     </div>
                     <table class="admin-table">
                         <thead>
@@ -8276,9 +10882,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${vouchers.map(voucher => `
                                 <tr>
                                     <td><strong>${escapeHtml(voucher.code)}</strong></td>
-                                    <td>${escapeHtml(voucher.label)}</td>
+                                    <td>
+                                        <strong>${escapeHtml(voucher.label)}</strong>
+                                        <p class="voucher-meta">Danh mục: ${escapeHtml(getVoucherCategories(voucher).join(', '))}</p>
+                                        <p class="voucher-meta">${voucher.expiresAt ? `Hết hạn: ${escapeHtml(formatDateTimeDisplay(`${voucher.expiresAt}T23:59:59`))}` : 'Không giới hạn hạn dùng'}</p>
+                                    </td>
                                     <td>Đơn tối thiểu ${formatCurrency(voucher.minOrder)} · tối đa ${formatCurrency(voucher.maxDiscount)}</td>
-                                    <td><span class="workspace-chip">${escapeHtml(voucher.status)}</span></td>
+                                    <td><span class="workspace-chip">${escapeHtml(getVoucherDisplayStatus(voucher))}</span></td>
                                     <td>
                                         <div class="workspace-row-actions">
                                             <button class="secondary-btn text-bold" type="button" data-voucher-action="edit" data-voucher-code="${escapeHtml(voucher.code)}">Sửa</button>
@@ -8318,6 +10928,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <label class="text-14" for="voucher-max-discount">Giảm tối đa</label>
                                 <input id="voucher-max-discount" type="number" min="0" step="1000" value="${editing?.maxDiscount || 0}" required>
                             </div>
+                            <div class="form-group">
+                                <label class="text-14" for="voucher-categories">Danh mục áp dụng</label>
+                                <input id="voucher-categories" type="text" value="${escapeHtml(getVoucherCategories(editing || {}).join(', '))}" placeholder="Tất cả hoặc Bóng đá, Cầu lông">
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="voucher-expires-at">Ngày hết hạn</label>
+                                <input id="voucher-expires-at" type="date" value="${escapeHtml(editing?.expiresAt || '')}">
+                            </div>
                             <div class="form-group form-group-full">
                                 <label class="text-14" for="voucher-status">Trạng thái</label>
                                 <select id="voucher-status">
@@ -8328,9 +10946,54 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <button class="login-submit-btn text-bold" type="submit">${editing ? 'Lưu voucher' : 'Thêm voucher'}</button>
                     </form>
+                    <section class="voucher-assignment-card">
+                        <div class="workspace-side-head">
+                            <div>
+                                <h3>Cấp voucher cho tài khoản</h3>
+                                <p class="customer-card-meta">Khách hàng chỉ thấy và dùng được các mã đã được cấp cho tài khoản của họ.</p>
+                            </div>
+                        </div>
+                        <form id="voucher-assignment-form" class="workspace-form">
+                            <div class="form-group">
+                                <label class="text-14" for="voucher-assignment-account">Tài khoản khách hàng</label>
+                                <select id="voucher-assignment-account" ${customerAccounts.length ? '' : 'disabled'}>
+                                    ${customerAccounts.length
+                                        ? customerAccounts.map(account => {
+                                            const accountKey = getAccountKeyForUser(account);
+                                            return `<option value="${escapeHtml(accountKey)}" ${accountKey === selectedAssignmentAccountKey ? 'selected' : ''}>${escapeHtml(getVoucherAssignmentAccountLabel(account))}</option>`;
+                                        }).join('')
+                                        : '<option value="">Chưa có tài khoản khách hàng</option>'}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="text-14" for="voucher-assignment-code">Mã cần cấp</label>
+                                <select id="voucher-assignment-code" ${unassignedAssignableVouchers.length && selectedAssignmentAccountKey ? '' : 'disabled'}>
+                                    ${unassignedAssignableVouchers.length
+                                        ? unassignedAssignableVouchers.map(voucher => `<option value="${escapeHtml(voucher.code)}">${escapeHtml(voucher.code)} - ${escapeHtml(voucher.label || 'Voucher')}</option>`).join('')
+                                        : '<option value="">Không còn voucher có thể cấp</option>'}
+                                </select>
+                            </div>
+                            <button class="login-submit-btn text-bold" type="submit" ${selectedAssignmentAccountKey && unassignedAssignableVouchers.length ? '' : 'disabled'}>Cấp voucher</button>
+                        </form>
+                        <div class="voucher-assignment-list">
+                            ${selectedAssignmentAccountKey && selectedAssignedVouchers.length
+                                ? selectedAssignedVouchers.map(voucher => `
+                                    <article class="voucher-assignment-item">
+                                        <div>
+                                            <strong>${escapeHtml(voucher.code)}</strong>
+                                            <p class="voucher-meta">${escapeHtml(voucher.label || 'Voucher')}</p>
+                                            <p class="voucher-meta">${voucher.expiresAt ? `Hết hạn: ${escapeHtml(formatDateTimeDisplay(`${voucher.expiresAt}T23:59:59`))}` : 'Không giới hạn hạn dùng'}</p>
+                                        </div>
+                                        <button class="cart-text-btn danger" type="button" data-voucher-unassign="${escapeHtml(voucher.code)}" data-voucher-account="${escapeHtml(selectedAssignmentAccountKey)}">Thu hồi</button>
+                                    </article>
+                                `).join('')
+                                : '<p class="voucher-assignment-empty">Tài khoản đang chọn chưa được cấp voucher nào.</p>'}
+                        </div>
+                    </section>
                 </aside>
             </div>
         `;
+        repairRenderedContent();
     }
 
     async function renderUserList() {
@@ -8390,13 +11053,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        statusBox.textContent = `Trạng thái phiên hỗ trợ: ${thread.status}. Nhân viên sẽ phản hồi trực tiếp trong cửa sổ này.`;
+        statusBox.textContent = isSupportBusinessHours()
+            ? `Trạng thái phiên hỗ trợ: ${thread.status}. Nhân viên sẽ phản hồi trực tiếp trong cửa sổ này.`
+            : `Trạng thái phiên hỗ trợ: ${thread.status}. Hiện ngoài giờ làm việc 08:00 - 21:00 hằng ngày, tin nhắn vẫn được ghi nhận theo tài khoản của bạn.`;
         messagesBox.innerHTML = thread.messages.map(message => `
-            <article class="support-message ${message.sender === 'staff' ? 'staff' : 'customer'}">
+            <article class="support-message ${message.sender === 'staff' ? 'customer' : 'staff'}">
                 <div>${escapeHtml(message.text)}</div>
                 <small>${escapeHtml(formatDateTimeDisplay(message.createdAt))}</small>
             </article>
         `).join('');
+        repairTextNodes(statusBox);
+        repairTextNodes(messagesBox);
     }
 
     function syncSupportChatVisibility() {
@@ -8503,6 +11170,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isManagerWorkspaceUser()) {
             await ensureManagerAccountsLoaded();
             await loadAdminBehaviorOverview();
+        }
+
+        if (canAccessWorkspace()) {
+            await syncWorkspaceSupportThreadsFromApi();
         }
 
         userDropdown.classList.add('hidden');
@@ -8668,7 +11339,9 @@ document.addEventListener('DOMContentLoaded', () => {
             code: buildOrderCode(),
             createdAt: new Date().toISOString(),
             status: 'Chờ xác nhận',
-            paymentStatus: 'Thanh toán thành công',
+            paymentStatus: PAYMENT_STATUS_PENDING_COD,
+            paidAt: '',
+            paymentConfirmedBy: '',
             totalItems: selectedItems.reduce((sum, item) => sum + item.quantity, 0),
             subtotal,
             shipping,
@@ -8720,7 +11393,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCheckoutView();
         renderInternalWorkspace();
         openOrdersView();
-        alert('Thanh toán thành công. Đơn hàng của bạn đã được gửi sang hàng chờ xác nhận.');
+        alert('Đặt hàng thành công. Đơn hàng sẽ được giao COD, chỉ hiển thị thanh toán thành công sau khi nhân viên xác nhận đã thu tiền.');
     }
 
     function removeLegacyWorkspaceArtifacts() {
@@ -8880,6 +11553,8 @@ document.addEventListener('DOMContentLoaded', () => {
             percent: Number(document.getElementById('voucher-percent')?.value || 0) / 100,
             minOrder: Number(document.getElementById('voucher-min-order')?.value || 0),
             maxDiscount: Number(document.getElementById('voucher-max-discount')?.value || 0),
+            categories: normalizeVoucherCategories(document.getElementById('voucher-categories')?.value || 'Tất cả'),
+            expiresAt: document.getElementById('voucher-expires-at')?.value || '',
             status: document.getElementById('voucher-status')?.value || 'Hoạt động'
         });
 
@@ -8890,22 +11565,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextCatalog = getManagedVoucherCatalog().filter(voucher => voucher.code !== originalCode && voucher.code !== nextVoucher.code);
         nextCatalog.push(nextVoucher);
         saveManagedVoucherCatalog(nextCatalog);
+        replaceVoucherCodeInAssignments(originalCode, nextVoucher.code);
         getWorkspaceState().editingVoucherCode = '';
         renderVouchersPanel();
         renderCartView();
         renderCheckoutView();
+        renderCatalog();
     }
 
     function deleteManagedVoucher(code) {
-        const nextCatalog = getManagedVoucherCatalog().filter(voucher => voucher.code !== String(code || '').toUpperCase());
+        const normalizedCode = String(code || '').toUpperCase();
+        const nextCatalog = getManagedVoucherCatalog().filter(voucher => voucher.code !== normalizedCode);
         saveManagedVoucherCatalog(nextCatalog);
-        if (getAppliedVoucherCode() === String(code || '').toUpperCase()) {
+        removeVoucherCodeFromAllAssignments(normalizedCode);
+        if (getAppliedVoucherCode() === normalizedCode) {
             saveAppliedVoucherCode('');
         }
         getWorkspaceState().editingVoucherCode = '';
         renderVouchersPanel();
         renderCartView();
         renderCheckoutView();
+        renderCatalog();
     }
 
     function initializeWorkspaceInteractions() {
@@ -8977,10 +11657,42 @@ document.addEventListener('DOMContentLoaded', () => {
             renderUserList();
         });
 
+        document.getElementById('staff-product-search-input')?.addEventListener('input', event => {
+            getWorkspaceState().staffProductSearchQuery = String(event.target?.value || '').trim();
+            renderAdminProductList();
+        });
+
+        document.getElementById('staff-product-brand-filter')?.addEventListener('change', event => {
+            getWorkspaceState().staffProductBrandFilter = String(event.target?.value || 'all').trim() || 'all';
+            renderAdminProductList();
+        });
+
+        document.getElementById('staff-product-category-filter')?.addEventListener('change', event => {
+            getWorkspaceState().staffProductCategoryFilter = String(event.target?.value || 'all').trim() || 'all';
+            renderAdminProductList();
+        });
+
+        document.getElementById('staff-product-price-filter')?.addEventListener('change', event => {
+            getWorkspaceState().staffProductPriceFilter = String(event.target?.value || 'all').trim() || 'all';
+            renderAdminProductList();
+        });
+
+        document.getElementById('staff-product-stock-filter')?.addEventListener('change', event => {
+            getWorkspaceState().staffProductStockFilter = String(event.target?.value || 'all').trim() || 'all';
+            renderAdminProductList();
+        });
+
         adminPanel.addEventListener('click', event => {
             const tabButton = event.target.closest('.tab-btn[data-role-scope]');
             if (tabButton) {
                 getWorkspaceState().activeWorkspaceTab = tabButton.dataset.tab || '';
+                if (tabButton.dataset.tab === 'support-mgmt') {
+                    void syncWorkspaceSupportThreadsFromApi().then(() => {
+                        renderSupportManagementPanel();
+                    });
+                } else {
+                    renderInternalWorkspace();
+                }
             }
 
             const accountButton = event.target.closest('[data-account-action]');
@@ -9019,6 +11731,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateWorkspaceOrder(orderId, { status: 'Đã hủy', supportRequest: 'Yêu cầu hủy đơn', supportStatus: 'Mới tạo' });
                     return;
                 }
+            }
+
+            if (orderButton?.dataset.orderAction === 'confirm-cod-payment') {
+                const orderId = orderButton.dataset.orderId;
+                const order = getWorkspaceOrders().find(item => String(item.id) === String(orderId));
+                if (!order || normalizeText(order.status) !== 'da giao') {
+                    alert('Chỉ xác nhận thu tiền sau khi đơn hàng đã giao đến tay người nhận.');
+                    return;
+                }
+                updateWorkspaceOrder(orderId, buildConfirmCodPaymentPatch());
+                return;
             }
 
             const categoryButton = event.target.closest('[data-category-action]');
@@ -9095,6 +11818,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            const voucherUnassignButton = event.target.closest('[data-voucher-unassign]');
+            if (voucherUnassignButton) {
+                event.preventDefault();
+                unassignVoucherFromAccount(voucherUnassignButton.dataset.voucherAccount, voucherUnassignButton.dataset.voucherUnassign);
+                renderVouchersPanel();
+                renderCartView();
+                if (currentView === 'checkout') {
+                    renderCheckoutView();
+                }
+                if (currentView === 'catalog') {
+                    renderCatalog();
+                }
+                return;
+            }
+
             const homeShowcaseToggleButton = event.target.closest('[data-home-showcase-toggle]');
             if (homeShowcaseToggleButton) {
                 event.preventDefault();
@@ -9120,7 +11858,156 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        adminPanel.addEventListener('change', event => {
+        adminPanel.addEventListener('input', event => {
+            if (event.target?.id === 'staff-order-search-input') {
+                getWorkspaceState().staffOrderSearchQuery = String(event.target.value || '').trim();
+                renderStaffOrdersPanel();
+            }
+
+            if (event.target?.id === 'staff-category-search-input') {
+                getWorkspaceState().staffCategorySearchQuery = String(event.target.value || '').trim();
+                renderCategoriesPanel();
+            }
+
+            if (event.target?.id === 'staff-review-search-input') {
+                getWorkspaceState().staffReviewSearchQuery = String(event.target.value || '').trim();
+                renderReviewsPanel();
+            }
+
+            if (event.target?.id === 'support-thread-search-input') {
+                const cursorPosition = event.target.selectionStart ?? String(event.target.value || '').length;
+                getWorkspaceState().supportThreadSearchQuery = String(event.target.value || '').trim();
+                renderSupportManagementPanel();
+                const nextInput = document.getElementById('support-thread-search-input');
+                if (nextInput) {
+                    const nextPosition = Math.min(cursorPosition, nextInput.value.length);
+                    nextInput.focus();
+                    nextInput.setSelectionRange(nextPosition, nextPosition);
+                }
+            }
+
+            if (event.target?.id === 'support-staff-input') {
+                const threadId = document.getElementById('support-thread-id')?.value
+                    || getWorkspaceState().activeSupportThreadId
+                    || '';
+                setSupportReplyDraft(threadId, event.target.value || '');
+                getWorkspaceState().supportReplySelectionStart = Number.isInteger(event.target.selectionStart)
+                    ? event.target.selectionStart
+                    : String(event.target.value || '').length;
+                getWorkspaceState().supportReplySelectionEnd = Number.isInteger(event.target.selectionEnd)
+                    ? event.target.selectionEnd
+                    : getWorkspaceState().supportReplySelectionStart;
+                getWorkspaceState().supportComposerFocusedThreadId = threadId;
+            }
+        });
+
+        adminPanel.addEventListener('focusout', event => {
+            if (event.target?.id !== 'support-staff-input') {
+                return;
+            }
+
+            captureSupportComposerState();
+            window.setTimeout(() => {
+                const state = getWorkspaceState();
+                if (document.activeElement?.id !== 'support-staff-input') {
+                    state.supportComposerFocusedThreadId = '';
+                }
+                flushPendingSupportPanelRefresh();
+            }, 0);
+        });
+
+        adminPanel.addEventListener('keydown', event => {
+            if (event.target?.id === 'support-staff-input' && event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+                event.preventDefault();
+                event.target.form?.requestSubmit();
+            }
+        });
+
+        adminPanel.addEventListener('change', async event => {
+            if (event.target?.id === 'manager-voucher-category-filter') {
+                getWorkspaceState().managerVoucherCategoryFilter = String(event.target.value || 'all').trim() || 'all';
+                renderVouchersPanel();
+                return;
+            }
+
+            if (event.target?.id === 'manager-voucher-status-filter') {
+                getWorkspaceState().managerVoucherStatusFilter = String(event.target.value || 'all').trim() || 'all';
+                renderVouchersPanel();
+                return;
+            }
+
+            if (event.target?.id === 'voucher-assignment-account') {
+                getWorkspaceState().voucherAssignmentAccountKey = String(event.target.value || '').trim();
+                renderVouchersPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-order-status-filter') {
+                getWorkspaceState().staffOrderStatusFilter = String(event.target.value || 'all').trim() || 'all';
+                renderStaffOrdersPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-order-start-date') {
+                const today = formatDateInputValue(new Date());
+                const nextValue = String(event.target.value || '').trim();
+                getWorkspaceState().staffOrderStartDate = nextValue && nextValue > today ? today : nextValue;
+                event.target.value = getWorkspaceState().staffOrderStartDate;
+                renderStaffOrdersPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-order-end-date') {
+                const today = formatDateInputValue(new Date());
+                const nextValue = String(event.target.value || '').trim();
+                getWorkspaceState().staffOrderEndDate = nextValue && nextValue > today ? today : nextValue;
+                event.target.value = getWorkspaceState().staffOrderEndDate;
+                renderStaffOrdersPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-category-sport-filter') {
+                getWorkspaceState().staffCategorySportFilter = String(event.target.value || 'all').trim() || 'all';
+                renderCategoriesPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-category-label-filter') {
+                getWorkspaceState().staffCategoryLabelFilter = String(event.target.value || 'all').trim() || 'all';
+                renderCategoriesPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-category-status-filter') {
+                getWorkspaceState().staffCategoryStatusFilter = String(event.target.value || 'all').trim() || 'all';
+                renderCategoriesPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-review-category-filter') {
+                getWorkspaceState().staffReviewCategoryFilter = String(event.target.value || 'all').trim() || 'all';
+                renderReviewsPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-review-type-filter') {
+                getWorkspaceState().staffReviewTypeFilter = String(event.target.value || 'all').trim() || 'all';
+                renderReviewsPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-review-rating-filter') {
+                getWorkspaceState().staffReviewRatingFilter = String(event.target.value || 'all').trim() || 'all';
+                renderReviewsPanel();
+                return;
+            }
+
+            if (event.target?.id === 'staff-review-status-filter') {
+                getWorkspaceState().staffReviewStatusFilter = String(event.target.value || 'all').trim() || 'all';
+                renderReviewsPanel();
+                return;
+            }
+
             const statusSelect = event.target.closest('[data-order-status-select]');
             if (statusSelect) {
                 updateWorkspaceOrder(statusSelect.dataset.orderId, { status: statusSelect.value });
@@ -9129,10 +12016,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (event.target.matches('[data-support-thread-status]')) {
                 const state = getWorkspaceState();
-                const threads = getSupportThreads().map(thread => (
-                    thread.id === state.activeSupportThreadId ? { ...thread, status: event.target.value, updatedAt: new Date().toISOString() } : thread
-                ));
-                saveSupportThreads(threads);
+                await updateSupportThreadStatusToApi(state.activeSupportThreadId, event.target.value);
                 renderSupportManagementPanel();
             }
         });
@@ -9156,6 +12040,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (event.target.id === 'voucher-assignment-form') {
+                event.preventDefault();
+                const accountKey = document.getElementById('voucher-assignment-account')?.value || '';
+                const voucherCode = document.getElementById('voucher-assignment-code')?.value || '';
+                if (assignVoucherToAccount(accountKey, voucherCode)) {
+                    getWorkspaceState().voucherAssignmentAccountKey = accountKey;
+                    renderVouchersPanel();
+                    renderCartView();
+                    if (currentView === 'checkout') {
+                        renderCheckoutView();
+                    }
+                    if (currentView === 'catalog') {
+                        renderCatalog();
+                    }
+                }
+                return;
+            }
+
             if (event.target.id === 'support-staff-form') {
                 event.preventDefault();
                 const threadId = document.getElementById('support-thread-id')?.value;
@@ -9163,7 +12065,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!threadId || !input?.value.trim()) {
                     return;
                 }
-                appendSupportMessage(threadId, 'staff', input.value.trim());
+                await sendWorkspaceSupportMessageToApi(threadId, input.value.trim());
+                clearSupportReplyDraft(threadId);
+                getWorkspaceState().pendingSupportPanelRefresh = false;
                 input.value = '';
                 renderSupportManagementPanel();
                 return;
@@ -9184,11 +12088,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        document.getElementById('support-chat-toggle')?.addEventListener('click', () => {
+        document.getElementById('support-chat-toggle')?.addEventListener('click', async () => {
             if (!ensureCustomerAccess('Hãy đăng nhập bằng tài khoản khách hàng để gửi tin nhắn tư vấn.')) {
                 return;
             }
-            getCustomerSupportThread(true);
+            await syncCustomerSupportThreadFromApi(true);
             document.getElementById('support-chat-panel')?.classList.toggle('hidden');
             renderCustomerSupportChat();
         });
@@ -9197,20 +12101,30 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('support-chat-panel')?.classList.add('hidden');
         });
 
-        document.getElementById('support-chat-form')?.addEventListener('submit', event => {
+        document.getElementById('support-chat-form')?.addEventListener('submit', async event => {
             event.preventDefault();
             if (!ensureCustomerAccess('Hãy đăng nhập bằng tài khoản khách hàng để gửi tin nhắn tư vấn.')) {
                 return;
             }
             const input = document.getElementById('support-chat-input');
-            const thread = getCustomerSupportThread(true);
-            if (!thread || !input?.value.trim()) {
+            if (!input?.value.trim()) {
                 return;
             }
-            appendSupportMessage(thread.id, 'customer', input.value.trim());
+            await sendCustomerSupportMessageToApi(input.value.trim());
             input.value = '';
             renderCustomerSupportChat();
         });
+
+        document.getElementById('support-chat-input')?.addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+                event.preventDefault();
+                event.target.form?.requestSubmit();
+            }
+        });
+
+        window.setInterval(() => {
+            void refreshSupportUiFromApi();
+        }, 5000);
     }
 
     function getProductTypeOptions(product) {
@@ -10199,7 +13113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderProductDetailView();
-        alert(`Đã thêm "${product.ten_san_pham}" vào giỏ hàng.`);
+        showCenteredMessage(`\u0110\u00e3 th\u00eam "${sanitizeProductText(product.ten_san_pham || 's\u1ea3n ph\u1ea9m')}" v\u00e0o gi\u1ecf h\u00e0ng.`);
     }
 
     function openProductDetailView(productId) {
@@ -10251,9 +13165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const typeOptions = getProductTypeOptions(product);
         const galleryImages = getProductGalleryImages(product);
         const reviews = getProductReviewsForDetail(product);
-        const relatedProducts = detailRecommendationProducts.length
-            ? detailRecommendationProducts
-            : getRelatedProductsForDetail(product);
         const averageRating = reviews.length
             ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length
             : 5;
@@ -10332,10 +13243,7 @@ document.addEventListener('DOMContentLoaded', () => {
             productDetailQuantityInput.value = String(currentDetailQuantity);
         }
 
-        if (productDetailWishlistBtn) {
-            productDetailWishlistBtn.classList.toggle('active', isWishlisted(product.id));
-            productDetailWishlistBtn.innerHTML = `<i class="fa-solid fa-heart"></i> ${isWishlisted(product.id) ? 'Bỏ khỏi yêu thích' : 'Yêu thích'}`;
-        }
+        syncProductDetailWishlistState(product.id);
         if (productDetailAddCartBtn) {
             productDetailAddCartBtn.disabled = Number(product.ton_kho || 0) <= 0;
         }
@@ -10362,11 +13270,16 @@ document.addEventListener('DOMContentLoaded', () => {
             </article>
         `).join('');
 
+        const hasFreshDetailRecommendations = detailRecommendationSignature.endsWith(`:detail:${String(product.id)}`);
+        const relatedProducts = hasFreshDetailRecommendations && detailRecommendationProducts.length
+            ? detailRecommendationProducts
+            : getRelatedProductsForDetail(product);
+
         productDetailRelated.innerHTML = relatedProducts.length
             ? relatedProducts.map(buildProductCardMarkup).join('')
             : '<p class="workspace-empty">Chưa có thêm sản phẩm cùng nhóm để gợi ý.</p>';
 
-        repairRenderedContent();
+        repairRenderedContent(productDetailView);
     }
 
     function buildProductCardMarkup(product) {
@@ -10461,6 +13374,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCartView() {
+        if (!getHydratedCartItems().length) {
+            cartRecommendationProducts = [];
+            cartRecommendationSignature = '';
+            renderCartRecommendations();
+        }
+
         syncCartSummaryStaticText();
         const cartItems = getHydratedCartItems();
         const selectedItems = cartItems.filter(item => item.selected);
@@ -10565,6 +13484,11 @@ document.addEventListener('DOMContentLoaded', () => {
         checkoutBtn.disabled = !hasSelected;
         removeSelectedBtn.disabled = !hasSelected;
         renderVoucherList(subtotal, appliedVoucher);
+        if (currentView === 'cart') {
+            void loadCartRecommendations();
+        } else {
+            renderCartRecommendations();
+        }
         repairRenderedContent();
     }
 
@@ -10659,12 +13583,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (currentView === 'product-detail') {
-            renderProductDetailView();
-            syncMainView();
+            syncProductDetailWishlistState(currentDetailProductId);
+            syncFavoriteButtons(productIdText, productDetailView);
             return;
         }
 
-        renderCatalog();
+        syncFavoriteButtons(productIdText);
     }
 
     function syncMainView() {
@@ -10748,7 +13672,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const products = await apiRequest('/products', { auth: false });
             allProducts = products.map(enrichProduct);
             invalidateRecommendationCache();
-            void loadHomeRecommendations(true);
             if (currentView === 'product-detail' && currentDetailProductId) {
                 renderProductDetailView();
                 syncMainView();
@@ -10788,6 +13711,9 @@ document.addEventListener('DOMContentLoaded', () => {
         homeRecommendationSignature = '';
         cartRecommendationSignature = '';
         detailRecommendationSignature = '';
+        homeShowcaseRenderSignature = '';
+        personalizedHomeRenderSignature = '';
+        recommendationFetchPromises.clear();
         adminBehaviorOverview = null;
         adminBehaviorOverviewError = '';
     }
@@ -10825,12 +13751,206 @@ document.addEventListener('DOMContentLoaded', () => {
             metadata: payload.metadata || null
         };
 
+        persistLocalBehaviorEvent(requestBody);
+
         fetch(`${API_BASE}/analytics/events`, {
             method: 'POST',
             headers: getAnalyticsHeaders(),
             body: JSON.stringify(requestBody),
             keepalive: Boolean(options.keepalive)
         }).catch(() => null);
+    }
+
+    function persistLocalBehaviorEvent(event = {}) {
+        if (!event.event_type) {
+            return;
+        }
+
+        const localEvents = readLocalBehaviorEvents();
+        localEvents.unshift({
+            ...event,
+            id: generateRecordId('behavior'),
+            created_at: new Date().toISOString(),
+            client_user_id: currentUser?.id || '',
+            client_username: currentUser?.username || currentUser?.ten_dang_nhap || '',
+            client_role: currentUser?.role || ''
+        });
+        localStorage.setItem(LOCAL_ANALYTICS_EVENTS_KEY, JSON.stringify(localEvents.slice(0, 1200)));
+    }
+
+    function readLocalBehaviorEvents() {
+        const events = readStorage(LOCAL_ANALYTICS_EVENTS_KEY, []);
+        return Array.isArray(events) ? events.filter(Boolean) : [];
+    }
+
+    function getLocalEventCreatedAt(event = {}) {
+        const date = new Date(event.created_at || event.createdAt || 0);
+        return Number.isNaN(date.getTime()) ? new Date(0) : date;
+    }
+
+    function resolveLocalPriceBucket(priceValue) {
+        const price = Number(priceValue || 0);
+        if (price <= 0) {
+            return '';
+        }
+        if (price < 1000000) {
+            return '0-1 triệu';
+        }
+        if (price <= 3000000) {
+            return '1-3 triệu';
+        }
+        if (price <= 5000000) {
+            return '3-5 triệu';
+        }
+        return 'Trên 5 triệu';
+    }
+
+    function getLocalBehaviorWeight(eventType = '') {
+        switch (String(eventType || '').toUpperCase()) {
+            case 'PURCHASE':
+                return 10;
+            case 'ADD_TO_CART':
+                return 6;
+            case 'PRODUCT_REVIEW':
+                return 5;
+            case 'PRODUCT_VIEW':
+                return 3;
+            case 'PRODUCT_SEARCH':
+            case 'CATEGORY_CLICK':
+                return 2;
+            default:
+                return 1;
+        }
+    }
+
+    function incrementMetric(map, key, amount = 1) {
+        const safeKey = String(key || '').trim();
+        if (!safeKey) {
+            return;
+        }
+        map.set(safeKey, (map.get(safeKey) || 0) + amount);
+    }
+
+    function metricsMapToList(map, limit = 8, labelResolver = key => key) {
+        return Array.from(map.entries())
+            .sort((left, right) => right[1] - left[1] || String(left[0]).localeCompare(String(right[0]), 'vi'))
+            .slice(0, limit)
+            .map(([key, value]) => ({
+                key,
+                label: labelResolver(key),
+                value
+            }));
+    }
+
+    function buildLocalAdminBehaviorOverview() {
+        const state = getStatsFilterState();
+        const start = new Date(`${state.statsStartDate}T00:00:00`);
+        const end = new Date(`${state.statsEndDate}T23:59:59`);
+        const events = readLocalBehaviorEvents().filter(event => {
+            const createdAt = getLocalEventCreatedAt(event);
+            return createdAt >= start && createdAt <= end;
+        });
+
+        const uniqueUsers = new Set();
+        const productScores = new Map();
+        const categoryScores = new Map();
+        const keywordScores = new Map();
+        const priceBucketScores = new Map();
+        let stayTotal = 0;
+        let stayCount = 0;
+
+        events.forEach(event => {
+            const eventType = String(event.event_type || event.eventType || '').toUpperCase();
+            const weight = getLocalBehaviorWeight(eventType);
+            const productId = String(event.product_id || event.productId || '').trim();
+            const product = productId ? findProductById(productId) : null;
+            const categoryKey = event.category_key || event.categoryKey || product?.danh_muc || '';
+            const brandKey = event.brand_key || event.brandKey || product?.thuong_hieu || '';
+            const keyword = event.search_keyword || event.searchKeyword || '';
+            const priceBucket = event.price_bucket || event.priceBucket || resolveLocalPriceBucket(event.price_value ?? event.priceValue ?? product?.gia_ban);
+            const userKey = event.client_user_id || event.user_id || event.userId || event.client_username || event.session_id || event.sessionId;
+
+            incrementMetric(categoryScores, categoryKey, weight);
+            incrementMetric(priceBucketScores, priceBucket, weight);
+            if (eventType === 'PRODUCT_SEARCH') {
+                incrementMetric(keywordScores, keyword, weight);
+            }
+            if (productId) {
+                incrementMetric(productScores, productId, weight);
+            }
+            if (userKey) {
+                uniqueUsers.add(String(userKey));
+            }
+            if (eventType === 'PAGE_STAY') {
+                const duration = Number(event.duration_seconds ?? event.durationSeconds ?? 0);
+                if (duration > 0) {
+                    stayTotal += duration;
+                    stayCount += 1;
+                }
+            }
+        });
+
+        return {
+            from: state.statsStartDate,
+            to: state.statsEndDate,
+            totalEvents: events.length,
+            uniqueUsers: uniqueUsers.size,
+            totalProductViews: events.filter(event => String(event.event_type || '').toUpperCase() === 'PRODUCT_VIEW').length,
+            totalSearches: events.filter(event => String(event.event_type || '').toUpperCase() === 'PRODUCT_SEARCH').length,
+            totalCartAdds: events.filter(event => String(event.event_type || '').toUpperCase() === 'ADD_TO_CART').length,
+            totalPurchases: events.filter(event => String(event.event_type || '').toUpperCase() === 'PURCHASE').length,
+            totalReviews: events.filter(event => String(event.event_type || '').toUpperCase() === 'PRODUCT_REVIEW').length,
+            averageStaySeconds: stayCount ? Math.round(stayTotal / stayCount) : 0,
+            totalRevenue: 0,
+            topProducts: metricsMapToList(productScores, 8, key => findProductById(key)?.ten_san_pham || key),
+            topCategories: metricsMapToList(categoryScores, 8),
+            topKeywords: metricsMapToList(keywordScores, 8),
+            topPriceBuckets: metricsMapToList(priceBucketScores, 8)
+        };
+    }
+
+    function mergeMetricLists(left = [], right = [], limit = 8) {
+        const merged = new Map();
+        [...(Array.isArray(left) ? left : []), ...(Array.isArray(right) ? right : [])].forEach(item => {
+            const key = String(item?.key || item?.label || '').trim();
+            if (!key) {
+                return;
+            }
+            const current = merged.get(key) || { key, label: item.label || key, value: 0 };
+            current.value += Number(item.value ?? item.score ?? 0);
+            current.label = current.label || item.label || key;
+            merged.set(key, current);
+        });
+        return Array.from(merged.values())
+            .sort((leftItem, rightItem) => Number(rightItem.value || 0) - Number(leftItem.value || 0))
+            .slice(0, limit);
+    }
+
+    function mergeAdminBehaviorOverview(remote = null, local = null) {
+        if (!remote) {
+            return local;
+        }
+        if (!local || !Number(local.totalEvents || 0)) {
+            return remote;
+        }
+
+        return {
+            ...remote,
+            totalEvents: Number(remote.totalEvents || 0) + Number(local.totalEvents || 0),
+            uniqueUsers: Number(remote.uniqueUsers || 0) + Number(local.uniqueUsers || 0),
+            totalProductViews: Number(remote.totalProductViews || 0) + Number(local.totalProductViews || 0),
+            totalSearches: Number(remote.totalSearches || 0) + Number(local.totalSearches || 0),
+            totalCartAdds: Number(remote.totalCartAdds || 0) + Number(local.totalCartAdds || 0),
+            totalPurchases: Number(remote.totalPurchases || 0) + Number(local.totalPurchases || 0),
+            totalReviews: Number(remote.totalReviews || 0) + Number(local.totalReviews || 0),
+            averageStaySeconds: Math.round((
+                Number(remote.averageStaySeconds || 0) + Number(local.averageStaySeconds || 0)
+            ) / ((Number(remote.averageStaySeconds || 0) && Number(local.averageStaySeconds || 0)) ? 2 : 1)),
+            topProducts: mergeMetricLists(remote.topProducts, local.topProducts),
+            topCategories: mergeMetricLists(remote.topCategories, local.topCategories),
+            topKeywords: mergeMetricLists(remote.topKeywords, local.topKeywords),
+            topPriceBuckets: mergeMetricLists(remote.topPriceBuckets, local.topPriceBuckets)
+        };
     }
 
     function buildCatalogTrackingContext() {
@@ -10961,7 +14081,96 @@ document.addEventListener('DOMContentLoaded', () => {
         return accountSuffix ? `user:${accountSuffix}` : `session:${analyticsSessionId}`;
     }
 
+    function getRecommendationCacheKey(context, options = {}) {
+        const normalizedContext = normalizeText(context) || 'home';
+        const normalizedLimit = Math.max(1, Math.min(Number(options.limit || 6), 24));
+        const productId = String(options.productId || '').trim();
+        const productIds = (options.productIds || [])
+            .map(value => String(value || '').trim())
+            .filter(Boolean)
+            .sort()
+            .join(',');
+
+        return [
+            getRecommendationScopeKey(),
+            normalizedContext,
+            `limit:${normalizedLimit}`,
+            `product:${productId}`,
+            `items:${productIds}`
+        ].join('|');
+    }
+
+    function readCachedRecommendationProducts(cacheKey) {
+        const cache = readStorage(RECOMMENDATION_CACHE_KEY, {});
+        const entry = cache && typeof cache === 'object' ? cache[cacheKey] : null;
+        const expiresAt = Number(entry?.expiresAt || 0);
+        if (!entry || expiresAt <= Date.now()) {
+            if (entry) {
+                delete cache[cacheKey];
+                try {
+                    localStorage.setItem(RECOMMENDATION_CACHE_KEY, JSON.stringify(cache));
+                } catch (error) {
+                    // Ignore cache cleanup failures; recommendation still works without local cache.
+                }
+            }
+            return null;
+        }
+
+        const productIds = Array.isArray(entry.productIds) ? entry.productIds : [];
+        const products = productIds
+            .map(productId => findProductById(productId))
+            .filter(Boolean);
+
+        return products.length ? products : null;
+    }
+
+    function writeCachedRecommendationProducts(cacheKey, products) {
+        const productIds = (Array.isArray(products) ? products : [])
+            .map(product => String(product?.id || '').trim())
+            .filter(Boolean);
+        if (!productIds.length) {
+            return;
+        }
+
+        const now = Date.now();
+        const cache = readStorage(RECOMMENDATION_CACHE_KEY, {});
+        const nextCache = cache && typeof cache === 'object' ? cache : {};
+        Object.keys(nextCache).forEach(key => {
+            if (Number(nextCache[key]?.expiresAt || 0) <= now) {
+                delete nextCache[key];
+            }
+        });
+
+        nextCache[cacheKey] = {
+            productIds,
+            createdAt: now,
+            expiresAt: now + RECOMMENDATION_CACHE_TTL_MS
+        };
+
+        const keys = Object.keys(nextCache)
+            .sort((left, right) => Number(nextCache[left]?.createdAt || 0) - Number(nextCache[right]?.createdAt || 0));
+        while (keys.length > 50) {
+            delete nextCache[keys.shift()];
+        }
+
+        try {
+            localStorage.setItem(RECOMMENDATION_CACHE_KEY, JSON.stringify(nextCache));
+        } catch (error) {
+            // LocalStorage may be full or disabled; keep the UI functional without caching.
+        }
+    }
+
     async function fetchRecommendationProducts(context, options = {}) {
+        const cacheKey = getRecommendationCacheKey(context, options);
+        const cachedProducts = readCachedRecommendationProducts(cacheKey);
+        if (cachedProducts) {
+            return cachedProducts;
+        }
+
+        if (recommendationFetchPromises.has(cacheKey)) {
+            return recommendationFetchPromises.get(cacheKey);
+        }
+
         const params = new URLSearchParams();
         params.set('context', context);
         params.set('sessionId', analyticsSessionId || ensureAnalyticsSessionId());
@@ -10975,7 +14184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             params.append('productIds', productId);
         });
 
-        try {
+        const requestPromise = (async () => {
             const response = await fetch(`${API_BASE}/analytics/recommendations?${params.toString()}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
@@ -10985,11 +14194,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const text = await response.text();
             const data = text ? normalizePayload(safeJsonParse(text)) : [];
-            return (Array.isArray(data) ? data : [])
+            const products = (Array.isArray(data) ? data : [])
                 .map(product => findProductById(product?.id) || enrichProduct(product))
                 .filter(Boolean);
+            writeCachedRecommendationProducts(cacheKey, products);
+            return products;
+        })();
+
+        recommendationFetchPromises.set(cacheKey, requestPromise);
+        try {
+            return await requestPromise;
         } catch (error) {
             return [];
+        } finally {
+            recommendationFetchPromises.delete(cacheKey);
         }
     }
 
@@ -11024,14 +14242,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const shouldShow = shouldShowHomeRecommendations();
-        const baseProducts = getPersonalizedHomeBaseProducts();
-        const filteredProducts = getFilteredPersonalizedHomeProducts(baseProducts);
-
         personalizedHomeView.classList.toggle('hidden', !shouldShow);
         if (!shouldShow) {
+            personalizedHomeRenderSignature = '';
             personalizedHomeGrid.innerHTML = '';
             return;
         }
+
+        const cachedRenderSignature = [
+            personalizedHomeProducts.map(product => product.id).join('|') || 'fallback',
+            homePersonalizedPriceRange,
+            homePersonalizedType,
+            homePersonalizedBrand,
+            homePersonalizedSize,
+            homePersonalizedSort
+        ].join('::');
+        if (cachedRenderSignature === personalizedHomeRenderSignature && personalizedHomeGrid.children.length) {
+            personalizedHomeView.classList.remove('hidden');
+            syncFavoriteButtons();
+            return;
+        }
+
+        const baseProducts = getPersonalizedHomeBaseProducts();
+        const filteredProducts = getFilteredPersonalizedHomeProducts(baseProducts);
+        const nextRenderSignature = cachedRenderSignature;
+        if (nextRenderSignature === personalizedHomeRenderSignature && personalizedHomeGrid.children.length) {
+            if (personalizedHomeCount) {
+                personalizedHomeCount.textContent = `${filteredProducts.length} sản phẩm`;
+            }
+            syncFavoriteButtons();
+            return;
+        }
+        personalizedHomeRenderSignature = nextRenderSignature;
 
         fillSelectOptions(
             homePersonalizedTypeFilter,
@@ -11087,7 +14329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>Thử đổi mức giá, thương hiệu hoặc size để mở rộng nhóm sản phẩm dành cho bạn.</p>
                 </div>
             `;
-        repairRenderedContent();
+        repairRenderedContent(personalizedHomeView);
     }
 
     async function loadDetailRecommendations(productId, force = false) {
@@ -11110,8 +14352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (currentView === 'product-detail' && String(currentDetailProductId) === normalizedProductId) {
-            renderProductDetailView();
-            syncMainView();
+            renderProductDetailRelatedProducts();
         }
     }
 
@@ -11170,12 +14411,15 @@ document.addEventListener('DOMContentLoaded', () => {
             params.set('to', state.statsEndDate);
         }
 
+        const localOverview = buildLocalAdminBehaviorOverview();
+
         try {
-            adminBehaviorOverview = await apiRequest(`/admin/analytics/overview?${params.toString()}`);
+            const remoteOverview = await apiRequest(`/admin/analytics/overview?${params.toString()}`);
+            adminBehaviorOverview = mergeAdminBehaviorOverview(remoteOverview, localOverview);
             adminBehaviorOverviewError = '';
         } catch (error) {
-            adminBehaviorOverview = null;
-            adminBehaviorOverviewError = error.message;
+            adminBehaviorOverview = localOverview;
+            adminBehaviorOverviewError = Number(localOverview.totalEvents || 0) ? '' : error.message;
         }
     }
 
@@ -11287,7 +14531,7 @@ document.addEventListener('DOMContentLoaded', () => {
             khachhang01: 'Nguy\u1ec5n V\u0103n A',
             khachhang02: 'Tr\u1ea7n Th\u1ecb B'
         };
-        const rawName = String(user?.display_name || user?.ho_ten || user?.full_name || user?.name || '').trim();
+        const rawName = String(user?.display_name || user?.ho_ten || user?.hoTen || user?.full_name || user?.name || '').trim();
         const cleanedName = sanitizeProductText(rawName).trim();
         const usernameKey = normalizeText(user?.username);
 
@@ -11321,10 +14565,12 @@ document.addEventListener('DOMContentLoaded', () => {
             ho_ten: getUserDisplayName(user),
             name: getUserDisplayName(user),
             display_name: getUserDisplayName(user),
-            username: sanitizeProductText(user.username || '').trim() || String(user.username || '').trim(),
+            username: sanitizeProductText(user.username || user.ten_dang_nhap || user.tenDangNhap || '').trim()
+                || String(user.username || user.ten_dang_nhap || user.tenDangNhap || '').trim(),
             role: getCanonicalRole(user.role || user.vai_tro || ''),
             email: String(user.email || '').trim(),
-            sdt: sanitizeProductText(user.sdt || user.phone || '').trim() || String(user.sdt || user.phone || '').trim()
+            sdt: sanitizeProductText(user.sdt || user.phone || user.so_dien_thoai || user.soDienThoai || '').trim()
+                || String(user.sdt || user.phone || user.so_dien_thoai || user.soDienThoai || '').trim()
         };
     }
 
@@ -11710,6 +14956,281 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
 
+    function getStaffProductSearchTarget(product = {}) {
+        return normalizeText([
+            product.sku,
+            product.ten_san_pham,
+            product.thuong_hieu,
+            product.danh_muc
+        ].join(' '));
+    }
+
+    function matchesStaffProductPriceFilter(product = {}, filterValue = 'all') {
+        const price = Number(product.gia_ban || 0);
+        switch (filterValue) {
+            case 'under-500k':
+                return price < 500000;
+            case '500k-1m':
+                return price >= 500000 && price <= 1000000;
+            case '1m-3m':
+                return price > 1000000 && price <= 3000000;
+            case 'above-3m':
+                return price > 3000000;
+            default:
+                return true;
+        }
+    }
+
+    function matchesStaffProductStockFilter(product = {}, filterValue = 'all') {
+        const stock = Number(product.ton_kho || 0);
+        switch (filterValue) {
+            case 'out-of-stock':
+                return stock <= 0;
+            case 'low-stock':
+                return stock >= 1 && stock <= 10;
+            case 'medium-stock':
+                return stock >= 11 && stock <= 30;
+            case 'high-stock':
+                return stock > 30;
+            default:
+                return true;
+        }
+    }
+
+    function getFilteredAdminProducts(products = allProducts) {
+        const state = getWorkspaceState();
+        const searchQuery = normalizeText(state.staffProductSearchQuery || '');
+        const brandFilter = normalizeText(state.staffProductBrandFilter || 'all');
+        const categoryFilter = normalizeText(state.staffProductCategoryFilter || 'all');
+
+        return [...(Array.isArray(products) ? products : [])]
+            .filter(product => {
+                if (searchQuery && !getStaffProductSearchTarget(product).includes(searchQuery)) {
+                    return false;
+                }
+                if (brandFilter !== 'all' && normalizeText(product.thuong_hieu || '') !== brandFilter) {
+                    return false;
+                }
+                if (categoryFilter !== 'all' && normalizeText(product.danh_muc || '') !== categoryFilter) {
+                    return false;
+                }
+                if (!matchesStaffProductPriceFilter(product, state.staffProductPriceFilter || 'all')) {
+                    return false;
+                }
+                if (!matchesStaffProductStockFilter(product, state.staffProductStockFilter || 'all')) {
+                    return false;
+                }
+                return true;
+            })
+            .sort((left, right) => String(left.ten_san_pham || '').localeCompare(String(right.ten_san_pham || ''), 'vi'));
+    }
+
+    function syncStaffProductFilterInputs(products = allProducts) {
+        const state = getWorkspaceState();
+        const searchInput = document.getElementById('staff-product-search-input');
+        const brandSelect = document.getElementById('staff-product-brand-filter');
+        const categorySelect = document.getElementById('staff-product-category-filter');
+        const priceSelect = document.getElementById('staff-product-price-filter');
+        const stockSelect = document.getElementById('staff-product-stock-filter');
+
+        if (searchInput) {
+            searchInput.value = state.staffProductSearchQuery || '';
+        }
+
+        const uniqueBrands = [...new Set((Array.isArray(products) ? products : [])
+            .map(product => sanitizeProductText(product.thuong_hieu || '').trim())
+            .filter(Boolean))]
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+
+        const uniqueCategories = [...new Set((Array.isArray(products) ? products : [])
+            .map(product => sanitizeProductText(product.danh_muc || '').trim())
+            .filter(Boolean))]
+            .sort((left, right) => left.localeCompare(right, 'vi'));
+
+        if (brandSelect) {
+            const currentValue = state.staffProductBrandFilter || 'all';
+            brandSelect.innerHTML = ['<option value="all">Tất cả thương hiệu</option>']
+                .concat(uniqueBrands.map(brand => `<option value="${escapeHtml(brand)}">${escapeHtml(brand)}</option>`))
+                .join('');
+            brandSelect.value = uniqueBrands.some(brand => brand === currentValue) ? currentValue : 'all';
+            state.staffProductBrandFilter = brandSelect.value;
+        }
+
+        if (categorySelect) {
+            const currentValue = state.staffProductCategoryFilter || 'all';
+            categorySelect.innerHTML = ['<option value="all">Tất cả danh mục</option>']
+                .concat(uniqueCategories.map(category => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`))
+                .join('');
+            categorySelect.value = uniqueCategories.some(category => category === currentValue) ? currentValue : 'all';
+            state.staffProductCategoryFilter = categorySelect.value;
+        }
+
+        if (priceSelect) {
+            priceSelect.value = state.staffProductPriceFilter || 'all';
+        }
+
+        if (stockSelect) {
+            stockSelect.value = state.staffProductStockFilter || 'all';
+        }
+    }
+
+    function getStaffOrderSearchTarget(order = {}) {
+        return normalizeText([
+            order.id,
+            order.code,
+            order.customer?.name,
+            order.customer?.username,
+            order.customer?.phone,
+            order.address?.recipient,
+            order.address?.phone,
+            order.voucherCode,
+            order.status
+        ].filter(Boolean).join(' '));
+    }
+
+    function getStaffOrderTimestamp(order = {}) {
+        const timestamp = new Date(order.createdAt || order.created_at || 0).getTime();
+        return Number.isFinite(timestamp) ? timestamp : 0;
+    }
+
+    function filterStaffOrders(orders = []) {
+        const state = getWorkspaceState();
+        const searchQuery = normalizeText(state.staffOrderSearchQuery || '');
+        const statusFilter = normalizeText(state.staffOrderStatusFilter || 'all');
+        const startTimestamp = state.staffOrderStartDate
+            ? new Date(`${state.staffOrderStartDate}T00:00:00`).getTime()
+            : null;
+        const endTimestamp = state.staffOrderEndDate
+            ? new Date(`${state.staffOrderEndDate}T23:59:59.999`).getTime()
+            : null;
+
+        return [...(Array.isArray(orders) ? orders : [])]
+            .filter(order => {
+                if (searchQuery && !getStaffOrderSearchTarget(order).includes(searchQuery)) {
+                    return false;
+                }
+                if (statusFilter !== 'all' && normalizeText(order.status || '') !== statusFilter) {
+                    return false;
+                }
+                const createdTimestamp = getStaffOrderTimestamp(order);
+                if (startTimestamp !== null && createdTimestamp < startTimestamp) {
+                    return false;
+                }
+                if (endTimestamp !== null && createdTimestamp > endTimestamp) {
+                    return false;
+                }
+                return true;
+            })
+            .sort((left, right) => getStaffOrderTimestamp(right) - getStaffOrderTimestamp(left));
+    }
+
+    function getStaffCategorySearchTarget(category = {}) {
+        return normalizeText([
+            category.id,
+            category.sport,
+            category.label,
+            category.status
+        ].filter(Boolean).join(' '));
+    }
+
+    function filterStaffCategories(categories = []) {
+        const state = getWorkspaceState();
+        const searchQuery = normalizeText(state.staffCategorySearchQuery || '');
+        const sportFilter = normalizeText(state.staffCategorySportFilter || 'all');
+        const labelFilter = normalizeText(state.staffCategoryLabelFilter || 'all');
+        const statusFilter = normalizeText(state.staffCategoryStatusFilter || 'all');
+
+        return [...(Array.isArray(categories) ? categories : [])]
+            .filter(category => {
+                if (searchQuery && !getStaffCategorySearchTarget(category).includes(searchQuery)) {
+                    return false;
+                }
+                if (sportFilter !== 'all' && normalizeText(category.sport || '') !== sportFilter) {
+                    return false;
+                }
+                if (labelFilter !== 'all' && normalizeText(category.label || '') !== labelFilter) {
+                    return false;
+                }
+                if (statusFilter !== 'all' && normalizeText(category.status || '') !== statusFilter) {
+                    return false;
+                }
+                return true;
+            })
+            .sort((left, right) => {
+                const sportDelta = String(left.sport || '').localeCompare(String(right.sport || ''), 'vi');
+                if (sportDelta !== 0) {
+                    return sportDelta;
+                }
+                return String(left.label || '').localeCompare(String(right.label || ''), 'vi');
+            });
+    }
+
+    function getReviewProduct(review = {}) {
+        return findProductById(review.productId) || {};
+    }
+
+    function getReviewProductTypeLabel(product = {}) {
+        const groupLabel = sanitizeProductText(getProductGroupLabel(product) || '').trim();
+        if (groupLabel && normalizeText(groupLabel) !== 'khong ro') {
+            return groupLabel;
+        }
+
+        const typeOptions = getProductTypeOptions(product);
+        return typeOptions[0] || '';
+    }
+
+    function getStaffReviewSearchTarget(review = {}) {
+        const product = getReviewProduct(review);
+        return normalizeText([
+            review.id,
+            review.reviewer,
+            review.content,
+            review.status,
+            review.rating,
+            product.id,
+            product.sku,
+            product.ten_san_pham,
+            product.thuong_hieu,
+            product.danh_muc,
+            getReviewProductTypeLabel(product)
+        ].filter(Boolean).join(' '));
+    }
+
+    function filterStaffReviews(reviews = []) {
+        const state = getWorkspaceState();
+        const searchQuery = normalizeText(state.staffReviewSearchQuery || '');
+        const categoryFilter = normalizeText(state.staffReviewCategoryFilter || 'all');
+        const typeFilter = normalizeText(state.staffReviewTypeFilter || 'all');
+        const ratingFilter = String(state.staffReviewRatingFilter || 'all');
+        const statusFilter = normalizeText(state.staffReviewStatusFilter || 'all');
+
+        return [...(Array.isArray(reviews) ? reviews : [])]
+            .filter(review => {
+                const product = getReviewProduct(review);
+                const category = normalizeText(product.danh_muc || getCanonicalSportFromProduct(product));
+                const type = normalizeText(getReviewProductTypeLabel(product));
+                const status = normalizeText(review.status || 'Hiển thị');
+
+                if (searchQuery && !getStaffReviewSearchTarget(review).includes(searchQuery)) {
+                    return false;
+                }
+                if (categoryFilter !== 'all' && category !== categoryFilter) {
+                    return false;
+                }
+                if (typeFilter !== 'all' && type !== typeFilter) {
+                    return false;
+                }
+                if (ratingFilter !== 'all' && String(Number(review.rating || 0)) !== ratingFilter) {
+                    return false;
+                }
+                if (statusFilter !== 'all' && status !== statusFilter) {
+                    return false;
+                }
+                return true;
+            })
+            .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0));
+    }
+
     normalizeAccountRecord = function normalizeAccountRecord(account = {}) {
         const normalizedRole = getCanonicalRole(account.role || account.vai_tro || 'Khách hàng');
         const sanitizedName = sanitizeProductText(account.ho_ten || account.name || account.display_name || '').trim();
@@ -11887,114 +15408,6 @@ document.addEventListener('DOMContentLoaded', () => {
         loginError.classList.remove('hidden');
         openOverlay(loginOverlay);
         return false;
-    }
-
-    function populateRegisterProvinceOptions(selectedProvinceCode = '') {
-        if (!registerAddressCitySelect) {
-            return;
-        }
-
-        setSelectOptions(
-            registerAddressCitySelect,
-            administrativeUnitsCache.map(unit => ({ value: unit.code, label: unit.fullName })),
-            'Ch\u1ecdn t\u1ec9nh/th\u00e0nh ph\u1ed1',
-            selectedProvinceCode
-        );
-    }
-
-    function populateRegisterDistrictOptions(province = null) {
-        if (!registerAddressDistrictSelect) {
-            return;
-        }
-
-        if (!province) {
-            setSelectOptions(registerAddressDistrictSelect, [], 'Ch\u1ecdn qu\u1eadn/huy\u1ec7n', '');
-            registerAddressDistrictSelect.disabled = true;
-            return;
-        }
-
-        setSelectOptions(
-            registerAddressDistrictSelect,
-            [{
-                value: 'Kh\u00f4ng \u00e1p d\u1ee5ng (m\u00f4 h\u00ecnh 2 c\u1ea5p)',
-                label: `Kh\u00f4ng \u00e1p d\u1ee5ng (m\u00f4 h\u00ecnh 2 c\u1ea5p) - ${province.shortName}`
-            }],
-            'Ch\u1ecdn qu\u1eadn/huy\u1ec7n',
-            'Kh\u00f4ng \u00e1p d\u1ee5ng (m\u00f4 h\u00ecnh 2 c\u1ea5p)'
-        );
-        registerAddressDistrictSelect.disabled = false;
-    }
-
-    function populateRegisterWardOptions(province = null, selectedWardCode = '', selectedWardName = '') {
-        if (!registerAddressWardSelect) {
-            return;
-        }
-
-        if (!province) {
-            setSelectOptions(registerAddressWardSelect, [], 'Ch\u1ecdn ph\u01b0\u1eddng/x\u00e3', '');
-            registerAddressWardSelect.disabled = true;
-            return;
-        }
-
-        setSelectOptions(
-            registerAddressWardSelect,
-            (province.wards || []).map(ward => ({ value: ward.code, label: ward.fullName })),
-            'Ch\u1ecdn ph\u01b0\u1eddng/x\u00e3',
-            selectedWardCode || selectedWardName
-        );
-        registerAddressWardSelect.disabled = false;
-    }
-
-    async function syncRegisterAddressSelects(address = null) {
-        if (!registerAddressCitySelect || !registerAddressDistrictSelect || !registerAddressWardSelect) {
-            return;
-        }
-
-        await loadAdministrativeUnits();
-        const selectedProvinceCode = String(address?.provinceCode || '').trim();
-        const selectedWardCode = String(address?.wardCode || '').trim();
-        const selectedWardName = String(address?.ward || '').trim();
-        const province = administrativeUnitsCache.find(unit => unit.code === selectedProvinceCode) || null;
-
-        populateRegisterProvinceOptions(selectedProvinceCode);
-        populateRegisterDistrictOptions(province);
-        populateRegisterWardOptions(province, selectedWardCode, selectedWardName);
-    }
-
-    function handleRegisterProvinceChange() {
-        const provinceCode = registerAddressCitySelect?.value || '';
-        const province = administrativeUnitsCache.find(unit => unit.code === provinceCode) || null;
-        populateRegisterDistrictOptions(province);
-        populateRegisterWardOptions(province);
-    }
-
-    function getRegisterAddressPayload() {
-        const provinceCode = String(registerAddressCitySelect?.value || '').trim();
-        const province = administrativeUnitsCache.find(unit => unit.code === provinceCode) || null;
-        const wardCode = String(registerAddressWardSelect?.value || '').trim();
-        const ward = province?.wards?.find(item => item.code === wardCode) || null;
-        const line = String(registerAddressLineInput?.value || '').trim();
-        const recipient = String(document.getElementById('register-name')?.value || '').trim();
-        const phone = String(document.getElementById('register-phone')?.value || '').trim();
-        const district = String(registerAddressDistrictSelect?.value || '').trim();
-
-        if (!province || !ward || !line || !recipient || !phone || !district) {
-            return null;
-        }
-
-        return {
-            id: generateRecordId('address'),
-            recipient,
-            phone,
-            line,
-            ward: ward.fullName,
-            wardCode,
-            district,
-            city: province.fullName,
-            provinceCode,
-            note: '',
-            isDefault: true
-        };
     }
 
     function getCartItems() {
@@ -12606,7 +16019,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const products = await apiRequest('/products', { auth: false });
             allProducts = mergeWithExtendedSportProducts(products).map(enrichProduct);
             invalidateRecommendationCache();
-            void loadHomeRecommendations(true);
             if (currentView === 'product-detail' && currentDetailProductId) {
                 renderProductDetailView();
                 syncMainView();
@@ -12635,7 +16047,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const productMap = new Map();
 
         getOrdersInStatsRange()
-            .filter(order => normalizeText(order.status) !== 'da huy')
+            .filter(isRevenueOrder)
             .forEach(order => {
                 const orderItems = Array.isArray(order.items) ? order.items : [];
                 const grossSubtotal = orderItems.reduce((sum, item) => {
@@ -12676,21 +16088,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function syncCommerceAccessUI() {
+    function syncCommerceAccessUI(scope = null) {
         const workspaceUser = canAccessWorkspace();
 
         cartLink?.classList.toggle('hidden', workspaceUser);
         wishlistLink?.classList.toggle('hidden', workspaceUser);
 
-        document.querySelectorAll('.wishlist-toggle-btn, .add-to-cart-btn, [data-wishlist-move]').forEach(button => {
-            button.classList.toggle('hidden', workspaceUser);
-            if ('disabled' in button) {
-                if (workspaceUser) {
-                    button.setAttribute('disabled', 'disabled');
-                } else if (!button.classList.contains('disabled')) {
-                    button.removeAttribute('disabled');
+        const roots = scope
+            ? [scope]
+            : (currentView === 'home' ? [homeSaleShowcase, personalizedHomeView] : [document]);
+        roots.filter(Boolean).forEach(root => {
+            root.querySelectorAll('.wishlist-toggle-btn, .add-to-cart-btn, [data-wishlist-move]').forEach(button => {
+                button.classList.toggle('hidden', workspaceUser);
+                if ('disabled' in button) {
+                    if (workspaceUser) {
+                        button.setAttribute('disabled', 'disabled');
+                    } else if (!button.classList.contains('disabled')) {
+                        button.removeAttribute('disabled');
+                    }
                 }
-            }
+            });
         });
 
         [productDetailWishlistBtn, productDetailAddCartBtn, productDetailBuyNowBtn].forEach(button => {
@@ -12769,7 +16186,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 code: 'DH-20260423-1001',
                 createdAt: '2026-04-22T09:15:00.000Z',
                 status: '\u0110\u00e3 giao',
-                paymentStatus: '\u0110\u00e3 ghi nh\u1eadn thanh to\u00e1n',
+                paymentStatus: PAYMENT_STATUS_PAID,
+                paidAt: '2026-04-22T09:17:00.000Z',
+                paymentConfirmedBy: 'nhanvien01',
                 supportRequest: '',
                 supportStatus: '',
                 supportNote: '',
@@ -12829,7 +16248,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 code: 'DH-20260423-1002',
                 createdAt: '2026-04-22T14:30:00.000Z',
                 status: '\u0110\u00e3 x\u00e1c nh\u1eadn',
-                paymentStatus: '\u0110\u00e3 ghi nh\u1eadn thanh to\u00e1n',
+                paymentStatus: PAYMENT_STATUS_PENDING_COD,
+                paidAt: '',
+                paymentConfirmedBy: '',
                 supportRequest: '',
                 supportStatus: '',
                 supportNote: '',
@@ -12889,7 +16310,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 code: 'DH-20260423-1003',
                 createdAt: '2026-04-23T08:00:00.000Z',
                 status: '\u0110\u00e3 h\u1ee7y',
-                paymentStatus: 'Ho\u00e0n ti\u1ec1n / kh\u00f4ng ghi nh\u1eadn',
+                paymentStatus: PAYMENT_STATUS_CANCELLED,
+                paidAt: '',
+                paymentConfirmedBy: '',
                 supportRequest: '',
                 supportStatus: '',
                 supportNote: '',
@@ -12994,8 +16417,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     syncSupportChatVisibility();
 
-    function repairRenderedContent() {
-        repairTextNodes(document.body);
-        syncCommerceAccessUI();
+    function repairRenderedContent(root = null) {
+        const target = root || document.getElementById('main-content') || document.body;
+        repairTextNodes(target);
+        if (!root && target !== document.body) {
+            if (bodyRepairTimer) {
+                window.clearTimeout(bodyRepairTimer);
+            }
+            bodyRepairTimer = window.setTimeout(() => {
+                repairTextNodes(document.body);
+                bodyRepairTimer = null;
+            }, 450);
+        }
+        syncCommerceAccessUI(root ? target : null);
     }
 });
