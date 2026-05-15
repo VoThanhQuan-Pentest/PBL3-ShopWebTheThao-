@@ -13162,6 +13162,18 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCatalog();
     }
 
+    function restoreWorkspaceTextInput(inputId, cursorPosition) {
+        const input = document.getElementById(inputId);
+        if (!input) {
+            return;
+        }
+
+        const valueLength = String(input.value || '').length;
+        const nextPosition = Math.min(Number.isInteger(cursorPosition) ? cursorPosition : valueLength, valueLength);
+        input.focus({ preventScroll: true });
+        input.setSelectionRange(nextPosition, nextPosition);
+    }
+
     function initializeWorkspaceInteractions() {
         removeLegacyWorkspaceArtifacts();
 
@@ -13194,7 +13206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('account-search-input')?.addEventListener('input', event => {
-            getWorkspaceState().accountSearchQuery = String(event.target?.value || '').trim();
+            getWorkspaceState().accountSearchQuery = String(event.target?.value || '');
             renderUserList();
         });
 
@@ -13232,7 +13244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('staff-product-search-input')?.addEventListener('input', event => {
-            getWorkspaceState().staffProductSearchQuery = String(event.target?.value || '').trim();
+            getWorkspaceState().staffProductSearchQuery = String(event.target?.value || '');
             renderAdminProductList();
         });
 
@@ -13454,30 +13466,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         adminPanel.addEventListener('input', event => {
             if (event.target?.id === 'staff-order-search-input') {
-                getWorkspaceState().staffOrderSearchQuery = String(event.target.value || '').trim();
+                const cursorPosition = event.target.selectionStart ?? String(event.target.value || '').length;
+                getWorkspaceState().staffOrderSearchQuery = String(event.target.value || '');
                 renderStaffOrdersPanel();
+                restoreWorkspaceTextInput('staff-order-search-input', cursorPosition);
             }
 
             if (event.target?.id === 'staff-category-search-input') {
-                getWorkspaceState().staffCategorySearchQuery = String(event.target.value || '').trim();
+                const cursorPosition = event.target.selectionStart ?? String(event.target.value || '').length;
+                getWorkspaceState().staffCategorySearchQuery = String(event.target.value || '');
                 renderCategoriesPanel();
+                restoreWorkspaceTextInput('staff-category-search-input', cursorPosition);
             }
 
             if (event.target?.id === 'staff-review-search-input') {
-                getWorkspaceState().staffReviewSearchQuery = String(event.target.value || '').trim();
+                const cursorPosition = event.target.selectionStart ?? String(event.target.value || '').length;
+                getWorkspaceState().staffReviewSearchQuery = String(event.target.value || '');
                 renderReviewsPanel();
+                restoreWorkspaceTextInput('staff-review-search-input', cursorPosition);
             }
 
             if (event.target?.id === 'support-thread-search-input') {
                 const cursorPosition = event.target.selectionStart ?? String(event.target.value || '').length;
-                getWorkspaceState().supportThreadSearchQuery = String(event.target.value || '').trim();
+                getWorkspaceState().supportThreadSearchQuery = String(event.target.value || '');
                 renderSupportManagementPanel();
-                const nextInput = document.getElementById('support-thread-search-input');
-                if (nextInput) {
-                    const nextPosition = Math.min(cursorPosition, nextInput.value.length);
-                    nextInput.focus();
-                    nextInput.setSelectionRange(nextPosition, nextPosition);
-                }
+                restoreWorkspaceTextInput('support-thread-search-input', cursorPosition);
             }
 
             if (event.target?.id === 'support-staff-input') {
@@ -16706,7 +16719,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const stockSelect = document.getElementById('staff-product-stock-filter');
 
         if (searchInput) {
-            searchInput.value = state.staffProductSearchQuery || '';
+            const nextValue = state.staffProductSearchQuery || '';
+            if (searchInput.value !== nextValue) {
+                searchInput.value = nextValue;
+            }
         }
 
         const uniqueBrands = [...new Set((Array.isArray(products) ? products : [])
