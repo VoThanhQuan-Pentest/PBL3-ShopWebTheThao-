@@ -9,6 +9,7 @@ import com.flarefitness.backend.exception.ResourceNotFoundException;
 import com.flarefitness.backend.repository.CustomerRepository;
 import com.flarefitness.backend.repository.UserRepository;
 import com.flarefitness.backend.security.CurrentUserPrincipal;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
@@ -244,7 +245,7 @@ public class AdminService {
     }
 
     private String normalize(String value) {
-        return String.valueOf(value == null ? "" : value)
+        return Normalizer.normalize(String.valueOf(value == null ? "" : value), Normalizer.Form.NFD)
                 .toLowerCase(Locale.ROOT)
                 .replace('đ', 'd')
                 .replace('Đ', 'd')
