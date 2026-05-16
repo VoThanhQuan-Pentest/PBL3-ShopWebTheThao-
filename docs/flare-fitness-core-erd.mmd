@@ -1,0 +1,216 @@
+erDiagram
+    tbl_nguoi_dung {
+        VARCHAR id PK
+        VARCHAR username UK
+        VARCHAR password
+        VARCHAR role
+        VARCHAR ho_ten
+        VARCHAR email
+        VARCHAR avatar_url
+        VARCHAR trang_thai
+        DATETIME lan_dang_nhap_cuoi
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+        TINYINT is_deleted
+    }
+
+    tbl_khach_hang {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        VARCHAR ten_khach
+        VARCHAR sdt
+        VARCHAR email
+        VARCHAR kenh
+        VARCHAR nhan
+        VARCHAR dia_chi
+        VARCHAR ghi_chu
+        DECIMAL tong_chi_tieu
+        VARCHAR hang_khach_hang
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+        TINYINT is_deleted
+    }
+
+    tbl_san_pham {
+        VARCHAR id PK
+        VARCHAR ten_san_pham
+        VARCHAR sku UK
+        VARCHAR danh_muc
+        VARCHAR thuong_hieu
+        VARCHAR size
+        VARCHAR mau
+        DECIMAL gia_nhap
+        DECIMAL gia_ban
+        INT ton_kho
+        VARCHAR trang_thai
+        VARCHAR link_san_pham
+        VARCHAR hinh_anh_url
+        TEXT mo_ta_ngan
+        VARCHAR ghi_chu
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+        TINYINT is_deleted
+    }
+
+    tbl_bien_the_san_pham {
+        VARCHAR id PK
+        VARCHAR product_id FK
+        VARCHAR sku_bien_the UK
+        VARCHAR size
+        VARCHAR mau
+        INT ton_kho_hien_tai
+        DECIMAL gia_nhap
+        DECIMAL gia_ban
+        VARCHAR hinh_anh_url
+        VARCHAR trang_thai
+        VARCHAR ghi_chu
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+        TINYINT is_deleted
+    }
+
+    tbl_gio_hang {
+        VARCHAR id PK
+        VARCHAR user_id FK
+        VARCHAR customer_id FK
+        VARCHAR trang_thai
+        INT tong_san_pham
+        DECIMAL tong_tien_tam_tinh
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+    }
+
+    tbl_chi_tiet_gio_hang {
+        VARCHAR id PK
+        VARCHAR cart_id FK
+        VARCHAR product_id FK
+        VARCHAR variant_id FK
+        INT so_luong
+        DECIMAL don_gia
+        DECIMAL thanh_tien
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+    }
+
+    tbl_don_hang {
+        VARCHAR id PK
+        VARCHAR ma_don UK
+        DATE ngay_dat
+        VARCHAR customer_id FK
+        VARCHAR user_id FK
+        VARCHAR nguoi_nhan
+        VARCHAR so_dien_thoai_giao
+        VARCHAR trang_thai_don
+        VARCHAR thanh_toan
+        TINYINT da_thanh_toan
+        DECIMAL tong_tien
+        DECIMAL phi_ship
+        DECIMAL giam_gia
+        VARCHAR dia_chi_giao
+        VARCHAR ghi_chu
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+        TINYINT is_deleted
+    }
+
+    tbl_chi_tiet_don_hang {
+        VARCHAR id PK
+        VARCHAR order_id FK
+        VARCHAR product_id FK
+        VARCHAR variant_id FK
+        VARCHAR ten_san_pham_snapshot
+        VARCHAR sku_snapshot
+        VARCHAR size_snapshot
+        VARCHAR mau_snapshot
+        INT so_luong
+        DECIMAL don_gia
+        DECIMAL thanh_tien
+        DATETIME ngay_tao
+    }
+
+    tbl_thanh_toan {
+        VARCHAR id PK
+        VARCHAR order_id FK
+        VARCHAR ma_giao_dich_truy_xuat UK
+        VARCHAR phuong_thuc
+        DECIMAL so_tien
+        VARCHAR trang_thai
+        VARCHAR nha_cung_cap
+        JSON raw_response_json
+        DATETIME thanh_toan_luc
+        VARCHAR ghi_chu
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+    }
+
+    tbl_danh_gia_san_pham {
+        VARCHAR id PK
+        VARCHAR product_id FK
+        VARCHAR user_id FK
+        VARCHAR reviewer_name
+        INT rating
+        VARCHAR content
+        VARCHAR status
+        DATETIME ngay_tao
+    }
+
+    tbl_san_khuyen_mai {
+        VARCHAR id PK
+        VARCHAR voucher_code
+        INT tong_so_luong
+        DATETIME bat_dau
+        DATETIME ket_thuc
+        VARCHAR trang_thai
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+    }
+
+    tbl_luot_nhan_khuyen_mai {
+        VARCHAR id PK
+        VARCHAR campaign_id FK
+        VARCHAR user_id FK
+        DATETIME ngay_tao
+    }
+
+    tbl_ho_tro_khach_hang {
+        VARCHAR id PK
+        VARCHAR customer_user_id FK
+        VARCHAR trang_thai
+        DATETIME ngay_tao
+        DATETIME ngay_cap_nhat
+    }
+
+    tbl_tin_nhan_ho_tro {
+        VARCHAR id PK
+        VARCHAR thread_id FK
+        VARCHAR sender_type
+        VARCHAR sender_user_id FK
+        TEXT noi_dung
+        DATETIME ngay_tao
+    }
+
+    tbl_nguoi_dung ||--o| tbl_khach_hang : has_customer_profile
+    tbl_nguoi_dung ||--o| tbl_gio_hang : owns_cart
+    tbl_khach_hang ||--o| tbl_gio_hang : owns_cart
+
+    tbl_san_pham ||--o{ tbl_bien_the_san_pham : has_variants
+    tbl_gio_hang ||--o{ tbl_chi_tiet_gio_hang : contains
+    tbl_san_pham ||--o{ tbl_chi_tiet_gio_hang : cart_product
+    tbl_bien_the_san_pham ||--o{ tbl_chi_tiet_gio_hang : cart_variant
+
+    tbl_khach_hang ||--o{ tbl_don_hang : places_orders
+    tbl_nguoi_dung ||--o{ tbl_don_hang : account_orders
+    tbl_don_hang ||--o{ tbl_chi_tiet_don_hang : has_items
+    tbl_san_pham ||--o{ tbl_chi_tiet_don_hang : ordered_product
+    tbl_bien_the_san_pham ||--o{ tbl_chi_tiet_don_hang : ordered_variant
+    tbl_don_hang ||--o{ tbl_thanh_toan : has_payments
+
+    tbl_san_pham ||--o{ tbl_danh_gia_san_pham : receives_reviews
+    tbl_nguoi_dung ||--o{ tbl_danh_gia_san_pham : writes_reviews
+
+    tbl_san_khuyen_mai ||--o{ tbl_luot_nhan_khuyen_mai : has_claims
+    tbl_nguoi_dung ||--o{ tbl_luot_nhan_khuyen_mai : claims_promos
+
+    tbl_nguoi_dung ||--o{ tbl_ho_tro_khach_hang : opens_support_threads
+    tbl_ho_tro_khach_hang ||--o{ tbl_tin_nhan_ho_tro : has_messages
+    tbl_nguoi_dung ||--o{ tbl_tin_nhan_ho_tro : sends_messages

@@ -929,6 +929,10 @@
                     <button id="open-forgot-password" class="auth-helper-link" type="button">Quên mật khẩu?</button>
                 </div>
                 <button type="submit" class="login-submit-btn text-bold">Đăng nhập</button>
+                <div class="google-auth-block google-auth-block-bottom">
+                    <div class="auth-divider"><span>Hoặc đăng nhập bằng Google</span></div>
+                    <div id="google-signin-button" class="google-signin-button"></div>
+                </div>
             </form>
         </div>
     </div>
@@ -1206,6 +1210,10 @@
         </div>
     </div>
 
+    <script>
+        window.FLARE_GOOGLE_CLIENT_ID = '569261307523-2pa981kvr7sook8ab4e3ie8l5oqk2bol.apps.googleusercontent.com';
+    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="./assets/main.js"></script>
 </body>
 </html>

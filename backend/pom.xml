@@ -19,6 +19,8 @@
     <properties>
         <java.version>17</java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <google.api.client.version>2.9.0</google.api.client.version>
+        <google.http.client.gson.version>2.1.0</google.http.client.gson.version>
     </properties>
 
     <dependencies>
@@ -45,6 +47,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>${google.api.client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-gson</artifactId>
+            <version>${google.http.client.gson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>

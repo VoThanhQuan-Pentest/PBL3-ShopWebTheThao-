@@ -387,8 +387,8 @@ INSERT INTO tbl_nguoi_dung (
 VALUES
     ('user-admin-001', 'admin', '$2a$10$yCPiRjbKafwJ0Lh5802sMuLDiCn.PJtA3WW4gCAeXowC6xV7jjrlu', 'Quản trị viên', 'Hệ Thống', 'admin@flarefitness.com', NULL, 'Đang hoạt động', NULL, '2026-04-18 08:00:00', '2026-04-18 08:00:00', 0),
     ('user-staff-001', 'nhanvien01', '$2a$10$tsHqWuYvzLI2jA6GonaWu.ysxEC4nNh9wVIMubsdkrxYdrP1mRdNO', 'Nhân viên', 'Nguyễn Nhân Viên', 'nv01@flarefitness.com', NULL, 'Đang hoạt động', NULL, '2026-04-18 08:05:00', '2026-04-18 08:05:00', 0),
-    ('user-customer-001', 'khachhang01', '$2a$10$.2gKv0ngr3Aez7VinUrROODe/TiSgR6/2cjmcdMenmcJ7hZzfp78e', 'Khách hàng', 'Nguyễn Văn A', 'nguyenvana@email.com', NULL, 'Đang hoạt động', NULL, '2026-04-18 08:10:00', '2026-04-18 08:10:00', 0),
-    ('user-customer-002', 'khachhang02', '$2a$10$7BixmDZTk7srPoAzxwKj2.FpYE5qkHPfVBBl/gI9ZHq6b8lZaWIXi', 'Khách hàng', 'Trần Thị B', 'tranthib@email.com', NULL, 'Đang hoạt động', NULL, '2026-04-18 08:12:00', '2026-04-18 08:12:00', 0)
+    ('user-customer-001', 'khachhang01', '$2a$10$9bK6KlpWaCPwmk6kEsz0TOjPNrsoVjeg/EtzKB2l1fY40q/goVpyO', 'Khách hàng', 'Nguyễn Văn A', 'nguyenvana@email.com', NULL, 'Đang hoạt động', NULL, '2026-04-18 08:10:00', '2026-04-18 08:10:00', 0),
+    ('user-customer-002', 'khachhang02', '$2a$10$CgNqJ8vr1LLcpUVVi6cAaOeXHoR4j29dW.arn/1tk6w8bJQhjhKe.', 'Khách hàng', 'Trần Thị B', 'tranthib@email.com', NULL, 'Đang hoạt động', NULL, '2026-04-18 08:12:00', '2026-04-18 08:12:00', 0)
 ON DUPLICATE KEY UPDATE
     password = VALUES(password),
     role = VALUES(role),

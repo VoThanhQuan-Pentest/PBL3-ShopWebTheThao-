@@ -2,6 +2,7 @@ package com.flarefitness.backend.service;
 
 import com.flarefitness.backend.dto.auth.CurrentUserResponse;
 import com.flarefitness.backend.dto.auth.ForgotPasswordRequest;
+import com.flarefitness.backend.dto.auth.GoogleLoginRequest;
 import com.flarefitness.backend.dto.auth.LoginRequest;
 import com.flarefitness.backend.dto.auth.LoginResponse;
 import com.flarefitness.backend.dto.auth.OtpRequest;
@@ -16,10 +17,18 @@ import com.flarefitness.backend.security.CurrentUserPrincipal;
 import com.flarefitness.backend.security.IpRateLimitService;
 import com.flarefitness.backend.security.JwtTokenService;
 import com.flarefitness.backend.security.RedisTokenStore;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +45,8 @@ public class AuthService {
     private final RedisTokenStore redisTokenStore;
     private final IpRateLimitService ipRateLimitService;
     private final EmailOtpService emailOtpService;
+    private final String googleClientId;
+    private final GoogleIdTokenVerifier googleIdTokenVerifier;
 
     public AuthService(
             UserRepository userRepository,
@@ -44,7 +55,8 @@ public class AuthService {
             JwtTokenService jwtTokenService,
             RedisTokenStore redisTokenStore,
             IpRateLimitService ipRateLimitService,
-            EmailOtpService emailOtpService
+            EmailOtpService emailOtpService,
+            @Value("${app.google.client-id:}") String googleClientId
     ) {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
@@ -53,6 +65,15 @@ public class AuthService {
         this.redisTokenStore = redisTokenStore;
         this.ipRateLimitService = ipRateLimitService;
         this.emailOtpService = emailOtpService;
+        this.googleClientId = googleClientId == null ? "" : googleClientId.trim();
+        this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(
+                new NetHttpTransport(),
+                GsonFactory.getDefaultInstance()
+        )
+                .setAudience(this.googleClientId.isBlank()
+                        ? Collections.emptyList()
+                        : Collections.singletonList(this.googleClientId))
+                .build();
     }
 
     public LoginResponse login(LoginRequest request, String ipAddress) {
@@ -66,6 +87,24 @@ public class AuthService {
         }
 
         ipRateLimitService.reset(ipAddress);
+        return issueLoginResponse(user);
+    }
+
+    @Transactional
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+        if (isBlank(googleClientId)) {
+            throw new BadRequestException("Chua cau hinh Google Client ID.");
+        }
+
+        GoogleIdToken idToken = verifyGoogleIdToken(request.idToken());
+        GoogleIdToken.Payload payload = idToken.getPayload();
+        String email = normalizeEmail(payload.getEmail());
+        if (isBlank(email) || !Boolean.TRUE.equals(payload.getEmailVerified())) {
+            throw new UnauthorizedException("Email Google chua duoc xac minh.");
+        }
+
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseGet(() -> createGoogleCustomerAccount(payload, email));
         return issueLoginResponse(user);
     }
 
@@ -195,6 +234,81 @@ public class AuthService {
     private UnauthorizedException invalidCredentials(String ipAddress) {
         ipRateLimitService.recordFailedAttempt(ipAddress);
         return new UnauthorizedException("Sai ten dang nhap hoac mat khau.");
+    }
+
+    private GoogleIdToken verifyGoogleIdToken(String rawIdToken) {
+        try {
+            GoogleIdToken idToken = googleIdTokenVerifier.verify(rawIdToken);
+            if (idToken == null) {
+                throw new UnauthorizedException("Google ID token khong hop le.");
+            }
+            return idToken;
+        } catch (GeneralSecurityException | IOException exception) {
+            throw new UnauthorizedException("Khong the xac minh Google ID token.");
+        }
+    }
+
+    private User createGoogleCustomerAccount(GoogleIdToken.Payload payload, String email) {
+        String displayName = extractGoogleDisplayName(payload, email);
+        User user = new User();
+        user.setId(generateUserId(CUSTOMER_ROLE));
+        user.setUsername(generateUniqueGoogleUsername(email));
+        user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+        user.setRole(CUSTOMER_ROLE);
+        user.setHoTen(displayName);
+        user.setEmail(email);
+        user.setStatus("Hoat dong");
+        user.setDeleted(false);
+        user.setCreatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        Customer customer = new Customer();
+        customer.setId(UUID.randomUUID().toString());
+        customer.setUserId(user.getId());
+        customer.setTenKhach(displayName);
+        customer.setSdt("");
+        customer.setEmail(email);
+        customer.setKenh("Google");
+        customer.setNhan("Moi");
+        customer.setCreatedAt(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        return user;
+    }
+
+    private String extractGoogleDisplayName(GoogleIdToken.Payload payload, String email) {
+        Object name = payload.get("name");
+        if (name != null && !String.valueOf(name).isBlank()) {
+            return String.valueOf(name).trim();
+        }
+
+        String localPart = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+        return localPart.isBlank() ? "Google User" : localPart;
+    }
+
+    private String generateUniqueGoogleUsername(String email) {
+        String localPart = email.contains("@") ? email.substring(0, email.indexOf('@')) : "google";
+        String base = localPart.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9._-]", "");
+        if (base.isBlank()) {
+            base = "google";
+        }
+        if (base.length() > 80) {
+            base = base.substring(0, 80);
+        }
+
+        String candidate = base;
+        int suffix = 1;
+        while (userRepository.existsAnyByUsernameIgnoreCase(candidate)) {
+            String suffixText = "-" + suffix;
+            int baseLimit = Math.min(base.length(), 100 - suffixText.length());
+            candidate = base.substring(0, baseLimit) + suffixText;
+            suffix++;
+        }
+        return candidate;
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     private boolean passwordMatches(String rawPassword, User user) {

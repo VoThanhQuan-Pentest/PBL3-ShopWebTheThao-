@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health", "/api/health").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/auth/login",
+                                "/api/auth/google",
                                 "/api/auth/register",
                                 "/api/auth/register/otp",
                                 "/api/auth/forgot-password",

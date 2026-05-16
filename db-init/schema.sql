@@ -125,7 +125,7 @@ INSERT INTO tbl_nguoi_dung (id, username, password, role, ho_ten, email, ngay_ta
 VALUES
     ('user-admin-001', 'admin', '$2a$10$yCPiRjbKafwJ0Lh5802sMuLDiCn.PJtA3WW4gCAeXowC6xV7jjrlu', 'Quản trị viên', 'Hệ Thống', 'admin@flarefitness.com', '2026-04-18 08:00:00'),
     ('user-staff-001', 'nhanvien01', '$2a$10$tsHqWuYvzLI2jA6GonaWu.ysxEC4nNh9wVIMubsdkrxYdrP1mRdNO', 'Nhân viên', 'Nguyễn Nhân Viên', 'nv01@flarefitness.com', '2026-04-18 08:05:00'),
-    ('user-customer-001', 'khachhang01', '$2a$10$.2gKv0ngr3Aez7VinUrROODe/TiSgR6/2cjmcdMenmcJ7hZzfp78e', 'Khách hàng', 'Nguyễn Văn A', 'nguyenvana@email.com', '2026-04-18 08:10:00')
+    ('user-customer-001', 'khachhang01', '$2a$10$9bK6KlpWaCPwmk6kEsz0TOjPNrsoVjeg/EtzKB2l1fY40q/goVpyO', 'Khách hàng', 'Nguyễn Văn A', 'nguyenvana@email.com', '2026-04-18 08:10:00')
 ON DUPLICATE KEY UPDATE
     password = VALUES(password),
     role = VALUES(role),

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = '/api';
+    const GOOGLE_CLIENT_ID = String(window.FLARE_GOOGLE_CLIENT_ID || '').trim();
     const TOKEN_KEY = 'pbl3_token';
     const USER_KEY = 'pbl3_user';
     const CART_KEY = 'pbl3_cart';
@@ -607,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('register-form');
     const registerOtpForm = document.getElementById('register-otp-form');
     const forgotPasswordForm = document.getElementById('forgot-password-form');
+    const googleSignInButton = document.getElementById('google-signin-button');
     const profileForm = document.getElementById('profile-form');
     const passwordForm = document.getElementById('password-form');
     const productForm = document.getElementById('product-form');
@@ -661,6 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let token = localStorage.getItem(TOKEN_KEY) || '';
     let pendingRegisterPayload = null;
+    let googleLoginInitialized = false;
     let analyticsSessionId = ensureAnalyticsSessionId();
     let currentUser = normalizeUserProfile(readStorage(USER_KEY));
     let promoHuntSyncPromise = null;
@@ -1342,6 +1345,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        initializeGoogleLogin();
+        window.addEventListener('load', () => initializeGoogleLogin());
+
         registerForm.addEventListener('submit', async event => {
             event.preventDefault();
             registerError.classList.add('hidden');
@@ -1867,10 +1873,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="workspace-card">
                     <div class="workspace-card-head">
                         <div>
-                            <h3>Sáº£n pháº©m Ä‘Æ°á»£c quan tĂ¢m nhiá»u</h3>
-                            <p class="customer-card-meta">Xáº¿p háº¡ng theo lÆ°á»£t xem, thĂªm giá», mua hĂ ng vĂ  tÆ°Æ¡ng tĂ¡c hĂ nh vi tá»•ng há»£p.</p>
+                            <h3>Sản phẩm được quan tâm nhiều</h3>
+                            <p class="customer-card-meta">Xếp hạng theo lượt xem, thêm giỏ, mua hàng và tương tác hành vi tổng hợp.</p>
                         </div>
-                        <span class="workspace-chip">${behaviorTopProducts.length} sáº£n pháº©m</span>
+                        <span class="workspace-chip">${behaviorTopProducts.length} sản phẩm</span>
                     </div>
                     ${adminBehaviorOverviewError ? `
                         <div class="workspace-empty">${escapeHtml(adminBehaviorOverviewError)}</div>
@@ -1878,20 +1884,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         <table class="admin-table">
                             <thead>
                                 <tr>
-                                    <th>Sáº£n pháº©m</th>
-                                    <th>Äiá»ƒm quan tĂ¢m</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Điểm quan tâm</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${behaviorTopProducts.slice(0, 10).map(item => `
                                     <tr>
-                                        <td>${escapeHtml(item.label || 'Sáº£n pháº©m')}</td>
+                                        <td>${escapeHtml(item.label || 'Sản phẩm')}</td>
                                         <td>${Number(item.value ?? item.score ?? 0)}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
-                    ` : '<div class="workspace-empty">ChÆ°a Ä‘á»§ dá»¯ liá»‡u hĂ nh vi Ä‘á»ƒ xáº¿p háº¡ng sáº£n pháº©m quan tĂ¢m.</div>'}
+                    ` : '<div class="workspace-empty">Chưa đủ dữ liệu hành vi để xếp hạng sản phẩm quan tâm.</div>'}
                 </div>
             `);
             */
@@ -2614,6 +2620,79 @@ document.addEventListener('DOMContentLoaded', () => {
             const active = currentCategory === category;
             link.classList.toggle('active', active);
         });
+    }
+
+    function initializeGoogleLogin(retryCount = 0) {
+        if (!googleSignInButton) {
+            return;
+        }
+
+        if (!GOOGLE_CLIENT_ID) {
+            googleSignInButton.classList.add('hidden');
+            return;
+        }
+
+        const googleIdentity = window.google?.accounts?.id;
+        if (!googleIdentity) {
+            if (retryCount < 30) {
+                window.setTimeout(() => initializeGoogleLogin(retryCount + 1), 250);
+            }
+            return;
+        }
+
+        if (googleLoginInitialized) {
+            return;
+        }
+
+        googleLoginInitialized = true;
+        googleIdentity.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredentialResponse,
+            ux_mode: 'popup'
+        });
+
+        const buttonWidth = Math.min(360, Math.max(240, Math.round(googleSignInButton.getBoundingClientRect().width || 360)));
+        googleSignInButton.innerHTML = '';
+        googleIdentity.renderButton(googleSignInButton, {
+            theme: 'filled_blue',
+            size: 'large',
+            type: 'standard',
+            shape: 'rectangular',
+            text: 'signin_with',
+            width: buttonWidth
+        });
+    }
+
+    async function handleGoogleCredentialResponse(response) {
+        loginError.classList.add('hidden');
+
+        if (!response?.credential) {
+            loginError.textContent = 'Khong nhan duoc ma xac thuc tu Google.';
+            loginError.classList.remove('hidden');
+            return;
+        }
+
+        try {
+            const loginResponse = await apiRequest('/auth/google', {
+                method: 'POST',
+                auth: false,
+                body: {
+                    id_token: response.credential
+                }
+            });
+
+            applyLoginSession(loginResponse);
+            closeOverlay(loginOverlay);
+            loginForm.reset();
+            await syncCurrentUserStateFromApi();
+            updateAuthUI();
+            await loadProducts();
+            await promptCustomerAddressIfMissing();
+        } catch (error) {
+            loginError.textContent = error.message;
+            loginError.classList.remove('hidden');
+            openOverlay(loginOverlay);
+        }
     }
 
     function clearSession() {
@@ -17351,10 +17430,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         searchSuggestions.innerHTML = suggestions.map(product => `
             <button class="search-suggestion-item" type="button" data-search-suggestion="${escapeHtml(product.ten_san_pham || '')}">
-                <img src="${escapeHtml(getProductImageUrl(product))}" alt="${escapeHtml(product.ten_san_pham || 'Sản phẩm')}" loading="lazy">
                 <div class="search-suggestion-content">
                     <strong>${escapeHtml(product.ten_san_pham || '')}</strong>
-                    <span>${escapeHtml(product.thuong_hieu || 'Không rõ thương hiệu')}</span>
+                    <span>${escapeHtml([product.thuong_hieu, getProductGroupLabel(product)].filter(Boolean).join(' · ') || 'Không rõ thông tin')}</span>
                 </div>
                 <span class="search-suggestion-price">${formatCurrency(getProductCurrentPrice(product))}</span>
             </button>

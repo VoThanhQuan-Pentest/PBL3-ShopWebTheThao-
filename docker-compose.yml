@@ -40,6 +40,7 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       APP_JWT_SECRET: replace-this-secret-with-at-least-32-characters
       APP_CORS_ALLOWED_ORIGINS: http://localhost,http://127.0.0.1
+      APP_GOOGLE_CLIENT_ID: 569261307523-2pa981kvr7sook8ab4e3ie8l5oqk2bol.apps.googleusercontent.com
       APP_MAIL_USERNAME: Hoangngocnguyen2006@gmail.com
       APP_MAIL_FROM: Hoangngocnguyen2006@gmail.com
       APP_MAIL_PASSWORD: ${APP_MAIL_PASSWORD:-}

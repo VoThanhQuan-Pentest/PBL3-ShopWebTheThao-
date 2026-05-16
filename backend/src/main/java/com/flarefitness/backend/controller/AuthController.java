@@ -3,6 +3,7 @@ package com.flarefitness.backend.controller;
 import com.flarefitness.backend.dto.auth.AuthMessageResponse;
 import com.flarefitness.backend.dto.auth.CurrentUserResponse;
 import com.flarefitness.backend.dto.auth.ForgotPasswordRequest;
+import com.flarefitness.backend.dto.auth.GoogleLoginRequest;
 import com.flarefitness.backend.dto.auth.LoginRequest;
 import com.flarefitness.backend.dto.auth.LoginResponse;
 import com.flarefitness.backend.dto.auth.OtpRequest;
@@ -36,6 +37,11 @@ public class AuthController {
             HttpServletRequest httpServletRequest
     ) {
         return ResponseEntity.ok(authService.login(request, resolveIpAddress(httpServletRequest)));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
     }
 
     @PostMapping("/register")
