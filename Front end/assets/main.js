@@ -1,13 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const API_BASE = '/api';
     const GOOGLE_CLIENT_ID = String(window.FLARE_GOOGLE_CLIENT_ID || '').trim();
+    const HOME_SHOWCASE_ROTATION_MS = 3000;
     const TOKEN_KEY = 'pbl3_token';
     const USER_KEY = 'pbl3_user';
     const CART_KEY = 'pbl3_cart';
     const WISHLIST_KEY = 'pbl3_wishlist';
     const ADDRESS_BOOK_KEY = 'pbl3_address_book';
     const ORDER_HISTORY_KEY = 'pbl3_order_history';
-    const ORDER_DATA_RESET_VERSION = '2026-04-23-sample-orders-v1';
+    const ORDER_DATA_RESET_VERSION = '2026-05-18-soft-reset-orders-v2';
     const ANALYTICS_SESSION_KEY = 'pbl3_analytics_session';
     const LOCAL_ANALYTICS_EVENTS_KEY = 'pbl3_local_behavior_events';
     const HOME_SHOWCASE_STORAGE_KEY = 'pbl3_home_showcase_visible';
@@ -25,12 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const MANAGED_VOUCHERS_VERSION = '2026-04-30-category-expiry-v1';
     const VOUCHER_ASSIGNMENTS_KEY = 'pbl3_voucher_assignments';
     const VOUCHER_ASSIGNMENTS_VERSION_KEY = 'pbl3_voucher_assignments_version';
-    const VOUCHER_ASSIGNMENTS_VERSION = '2026-05-07-account-voucher-quantity-v1';
+    const VOUCHER_ASSIGNMENTS_VERSION = '2026-05-18-reset-voucher-usage-v2';
     const DEFAULT_VOUCHER_ASSIGNMENT_QUANTITY = 1;
     const PROMO_HUNT_KEY = 'pbl3_promo_hunt_campaigns';
     const PROMO_HUNT_CLAIMS_KEY = 'pbl3_promo_hunt_claims';
     const PROMO_HUNT_VERSION_KEY = 'pbl3_promo_hunt_version';
-    const PROMO_HUNT_VERSION = '2026-05-07-promo-hunt-v1';
+    const PROMO_HUNT_VERSION = '2026-05-18-reset-promo-claims-v2';
     const AVAILABLE_VOUCHERS = [
         {
             code: 'HOTDEAL10',
@@ -1836,6 +1837,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             currentDetailSelectedType = option.dataset.detailType || '';
+            currentDetailImageIndex = findProductImageIndexForType(
+                findProductById(currentDetailProductId),
+                currentDetailSelectedType,
+                currentDetailImageIndex
+            );
             renderProductDetailView();
         });
         productDetailSizeOptions?.addEventListener('click', event => {
@@ -1927,6 +1933,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getSampleWorkspaceOrdersSeed() {
+        return [];
+
         return [
             {
                 id: 'sample-order-001',
@@ -3166,7 +3174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             homeShowcaseIndex += 1;
             syncHomeShowcasePosition();
             queueHomeShowcaseLoopReset();
-        }, 7000);
+        }, HOME_SHOWCASE_ROTATION_MS);
     }
 
     function renderHomeSaleShowcase() {
@@ -3599,6 +3607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryKey: collectionId || ''
         });
         renderCatalog();
+        scrollToCatalogTop();
     }
 
     function applyCategoryFilter(category) {
@@ -3623,6 +3632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         closeMegaMenu();
         renderCatalog();
+        scrollToCatalogTop();
     }
 
     function applyMenuItemFilter(itemId) {
@@ -3656,6 +3666,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         closeMegaMenu();
         renderCatalog();
+        scrollToCatalogTop();
     }
 
     function applyBrandFilter(brand) {
@@ -3680,6 +3691,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         closeMegaMenu();
         renderCatalog();
+        scrollToCatalogTop();
+    }
+
+    function scrollToCatalogTop() {
+        window.requestAnimationFrame(() => {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        });
     }
 
     function resetCatalogState(options = {}) {
@@ -3911,10 +3929,133 @@ document.addEventListener('DOMContentLoaded', () => {
             .replaceAll("'", '&#39;');
     }
 
+    function parseProductImageUrls(value) {
+        return String(value || '')
+            .split(/\r?\n|\|/)
+            .map(item => item.trim())
+            .filter(Boolean);
+    }
+
+    const SIGNATURE_PRODUCT_SKUS = new Set([
+        'FB-132', 'FB-133', 'FB-134', 'FB-135',
+        'BB-127', 'BB-128',
+        'VB-129', 'VB-130',
+        'TT-130', 'TT-131',
+        'BM-128', 'BM-129'
+    ]);
+
+    const IMAGE_VARIANT_LABELS = {
+        red: 'Đỏ',
+        black: 'Đen',
+        balck: 'Đen',
+        white: 'Trắng',
+        milk: 'Trắng sữa',
+        blue: 'Xanh dương',
+        'dark blue': 'Xanh đậm',
+        'blue white': 'Xanh dương / Trắng',
+        green: 'Xanh lá',
+        brown: 'Nâu',
+        pink: 'Hồng',
+        gray: 'Xám',
+        grey: 'Xám',
+        orange: 'Cam',
+        organge: 'Cam',
+        purple: 'Tím',
+        yellow: 'Vàng',
+        'mix 3 mau': 'Mix 3 màu',
+        'yellow purple': 'Vàng / Tím',
+        'red stripes': 'Đỏ sọc',
+        'white special': 'Trắng đặc biệt',
+        original: 'Nguyên bản',
+        orginal: 'Nguyên bản',
+        do: 'Đỏ',
+        trang: 'Trắng',
+        xanh: 'Xanh'
+    };
+
+    function isSignatureProduct(product) {
+        const sku = String(product?.sku || '').trim().toUpperCase();
+        return SIGNATURE_PRODUCT_SKUS.has(sku) || normalizeText(product?.ten_san_pham).includes('chu ky');
+    }
+
+    function normalizeVariantLabel(value) {
+        const compact = String(value || '')
+            .replace(/[_-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        if (!compact) {
+            return '';
+        }
+
+        const normalized = normalizeText(compact);
+        return IMAGE_VARIANT_LABELS[normalized] || compact;
+    }
+
+    function getVariantLabelKey(value) {
+        return normalizeText(normalizeVariantLabel(value))
+            .replace(/đ/g, 'd')
+            .replace(/[^a-z0-9]+/g, '');
+    }
+
+    function getImageVariantLabelFromUrl(imageUrl) {
+        const rawPath = String(imageUrl || '').split('?')[0].split('#')[0];
+        const rawFileName = rawPath.split('/').pop() || '';
+        let fileName = rawFileName;
+        try {
+            fileName = decodeURIComponent(rawFileName);
+        } catch (error) {
+            fileName = rawFileName;
+        }
+
+        const stem = fileName.replace(/\.[^.]+$/, '').trim();
+        if (!stem || /^\d+$/.test(stem)) {
+            return '';
+        }
+
+        const normalizedStem = stem
+            .replace(/^[0-9]+[\s._-]+/, '')
+            .replace(/(?<=[A-Za-zÀ-ỹ])\d+$/u, '')
+            .replace(/[_-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        return normalizeVariantLabel(normalizedStem);
+    }
+
+    function getProductImageVariantOptions(product) {
+        if (isSignatureProduct(product)) {
+            return [];
+        }
+
+        const seen = new Set();
+        return parseProductImageUrls(product?.hinh_anh_url)
+            .map(getImageVariantLabelFromUrl)
+            .filter(Boolean)
+            .filter(label => {
+                const key = getVariantLabelKey(label);
+                if (!key || seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
+                return true;
+            });
+    }
+
+    function findProductImageIndexForType(product, type, fallbackIndex = 0) {
+        const targetKey = getVariantLabelKey(type);
+        if (!targetKey) {
+            return fallbackIndex;
+        }
+
+        const galleryImages = getProductGalleryImages(product);
+        const matchedIndex = galleryImages.findIndex(imageUrl => getVariantLabelKey(getImageVariantLabelFromUrl(imageUrl)) === targetKey);
+        return matchedIndex >= 0 ? matchedIndex : fallbackIndex;
+    }
+
     function getProductImageUrl(product) {
-        const explicitUrl = String(product.hinh_anh_url || '').trim();
-        if (explicitUrl) {
-            return explicitUrl;
+        const [primaryImage] = parseProductImageUrls(product?.hinh_anh_url);
+        if (primaryImage) {
+            return primaryImage;
         }
         return buildProductPoster(product);
     }
@@ -8818,7 +8959,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             accountKey,
             accountKeyAliases: Array.from(new Set(accountKeyAliases)),
-            items: normalizedItems
+            items: normalizedItems,
+            deleted: Boolean(order?.deleted || order?.is_deleted)
         };
     }
 
@@ -8919,6 +9061,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return Array.from(merged.values())
+            .filter(order => !order.deleted)
             .sort((left, right) => new Date(right.createdAt || 0) - new Date(left.createdAt || 0));
     }
 
@@ -8939,7 +9082,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isRevenueOrder(order = {}) {
-        return normalizeText(order.status || '') !== 'da huy' && isOrderPaymentConfirmed(order);
+        return !order.deleted && normalizeText(order.status || '') !== 'da huy' && isOrderPaymentConfirmed(order);
     }
 
     function buildOrderPaymentPatchForStatus(status, order = {}) {
@@ -9577,6 +9720,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getVoucherAssignmentStore() {
+        if (localStorage.getItem(VOUCHER_ASSIGNMENTS_VERSION_KEY) !== VOUCHER_ASSIGNMENTS_VERSION) {
+            localStorage.removeItem(VOUCHER_ASSIGNMENTS_KEY);
+            localStorage.setItem(VOUCHER_ASSIGNMENTS_VERSION_KEY, VOUCHER_ASSIGNMENTS_VERSION);
+            return {};
+        }
+
         const stored = readStorage(VOUCHER_ASSIGNMENTS_KEY, null);
         if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
             return {};
@@ -10017,6 +10166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!Array.isArray(stored) || !stored.length) {
             const defaults = getDefaultPromoHuntCampaigns().map(normalizePromoHuntCampaign);
             savePromoHuntCampaigns(defaults);
+            savePromoHuntClaims({});
             return defaults;
         }
 
@@ -10025,6 +10175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(campaign => campaign.id && campaign.voucherCode);
         if (localStorage.getItem(PROMO_HUNT_VERSION_KEY) !== PROMO_HUNT_VERSION) {
             savePromoHuntCampaigns(normalized);
+            savePromoHuntClaims({});
         }
         return normalized;
     }
@@ -11166,9 +11317,79 @@ document.addEventListener('DOMContentLoaded', () => {
         return !account || getCanonicalRole(account.role) === 'Khách hàng';
     }
 
+    function getCustomerIdentityValues(customer = {}) {
+        return [
+            customer.id,
+            customer.userId,
+            customer.user_id,
+            customer.accountKey,
+            customer.username,
+            customer.ten_dang_nhap,
+            customer.tenDangNhap,
+            customer.email,
+            customer.phone,
+            customer.sdt,
+            customer.so_dien_thoai,
+            customer.soDienThoai
+        ];
+    }
+
+    function buildCustomerIdentityIndex(accounts = []) {
+        const index = new Map();
+
+        accounts.forEach(account => {
+            const accountKey = getAccountKeyForUser(account);
+            if (!accountKey) {
+                return;
+            }
+
+            [
+                ...getCustomerIdentityValues(account),
+                accountKey,
+                ...(account.username ? [`user-customer-${account.username}`, `customer-${account.username}`] : [])
+            ].forEach(value => {
+                const normalized = normalizeAccountIdentity(value);
+                if (normalized && !index.has(normalized)) {
+                    index.set(normalized, accountKey);
+                }
+            });
+        });
+
+        return index;
+    }
+
+    function getOrderCustomerIdentityValues(order = {}) {
+        return [
+            order.accountKey,
+            order.account_key,
+            ...(Array.isArray(order.accountKeyAliases) ? order.accountKeyAliases : []),
+            ...(Array.isArray(order.account_key_aliases) ? order.account_key_aliases : []),
+            ...getCustomerIdentityValues(order.customer || {}),
+            order.address?.phone
+        ];
+    }
+
+    function findCustomerAccountKeyForOrder(order, identityIndex) {
+        for (const value of getOrderCustomerIdentityValues(order)) {
+            const normalized = normalizeAccountIdentity(value);
+            if (normalized && identityIndex.has(normalized)) {
+                return identityIndex.get(normalized);
+            }
+        }
+        return '';
+    }
+
+    function isAccountDeletedWithRelatedData(account = {}) {
+        const status = normalizeText(account.status || account.trang_thai || '');
+        return status.includes('da xoa kem du lieu') || status.includes('xoa kem du lieu');
+    }
+
     function getCustomerSummaries() {
         const accountMap = new Map();
-        const accounts = getManagedAccounts().filter(account => getCanonicalRole(account.role) === 'Khách hàng');
+        const accounts = getManagedAccounts()
+            .filter(account => getCanonicalRole(account.role) === 'Khách hàng')
+            .filter(account => !isAccountDeletedWithRelatedData(account));
+        const identityIndex = buildCustomerIdentityIndex(accounts);
         const addressBooks = [];
 
         for (let index = 0; index < localStorage.length; index += 1) {
@@ -11193,32 +11414,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 orderCount: 0,
                 totalSpent: 0,
                 lastOrderDate: '',
-                defaultAddress: ''
+                defaultAddress: '',
+                latestAddressAt: ''
             });
         });
 
         getWorkspaceOrders().forEach(order => {
-            const accountKey = order.accountKey || getAccountKeyForUser(order.customer);
+            const accountKey = findCustomerAccountKeyForOrder(order, identityIndex);
             if (!accountKey) {
                 return;
             }
-
-            if (!accountMap.has(accountKey)) {
-                accountMap.set(accountKey, {
-                    accountKey,
-                    name: order.customer?.name || order.address?.recipient || '',
-                    username: order.customer?.username || '',
-                    email: order.customer?.email || '',
-                    phone: order.customer?.phone || order.address?.phone || '',
-                    status: 'Hoạt động',
-                    orderCount: 0,
-                    totalSpent: 0,
-                    lastOrderDate: '',
-                    defaultAddress: ''
-                });
+            const current = accountMap.get(accountKey);
+            if (!current) {
+                return;
             }
 
-            const current = accountMap.get(accountKey);
             current.orderCount += 1;
             if (isRevenueOrder(order)) {
                 current.totalSpent += Number(order.total || 0);
@@ -11226,10 +11436,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!current.lastOrderDate || new Date(order.createdAt) > new Date(current.lastOrderDate)) {
                 current.lastOrderDate = order.createdAt;
             }
+            current.name = current.name || order.customer?.name || order.address?.recipient || '';
+            current.username = current.username || order.customer?.username || '';
+            current.email = current.email || order.customer?.email || '';
+            current.phone = current.phone || order.customer?.phone || order.address?.phone || '';
+
+            if (order.address && (!current.latestAddressAt || new Date(order.createdAt) > new Date(current.latestAddressAt))) {
+                current.defaultAddress = buildAddressText(order.address);
+                current.latestAddressAt = order.createdAt || '';
+            }
         });
 
         addressBooks.forEach(entry => {
-            const current = accountMap.get(entry.accountKey);
+            const normalizedEntryKey = normalizeAccountIdentity(entry.accountKey);
+            const accountKey = identityIndex.get(normalizedEntryKey) || entry.accountKey;
+            const current = accountMap.get(accountKey);
             const defaultAddress = entry.addresses.find(address => address.isDefault) || entry.addresses[0];
             if (!current || !defaultAddress) {
                 return;
@@ -11238,7 +11459,12 @@ document.addEventListener('DOMContentLoaded', () => {
             current.phone = current.phone || defaultAddress.phone || '';
         });
 
-        return Array.from(accountMap.values()).sort((left, right) => right.totalSpent - left.totalSpent);
+        return Array.from(accountMap.values())
+            .map(customer => {
+                const { latestAddressAt, ...summary } = customer;
+                return summary;
+            })
+            .sort((left, right) => right.totalSpent - left.totalSpent);
     }
 
     function getStatsFilterState() {
@@ -11998,7 +12224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="workspace-card-head">
                     <div>
                         <h3>Thông tin khách hàng</h3>
-                        <p class="customer-card-meta">Tổng hợp từ đơn hàng, sổ địa chỉ và danh sách tài khoản đang có trên frontend demo.</p>
+                        <p class="customer-card-meta">Tổng hợp từ các tài khoản khách hàng hợp lệ, đơn hàng và sổ địa chỉ đã đồng bộ.</p>
                     </div>
                     <span class="workspace-chip">${customers.length} khách hàng</span>
                 </div>
@@ -13140,13 +13366,13 @@ document.addEventListener('DOMContentLoaded', () => {
         renderInternalWorkspace();
     }
 
-    async function deleteManagedAccount(accountId) {
+    async function deleteManagedAccount(accountId, deleteRelatedData = false) {
         if (!accountId) {
             return;
         }
 
         try {
-            await apiRequest(`/admin/users/${encodeURIComponent(accountId)}`, { method: 'DELETE' });
+            await apiRequest(`/admin/users/${encodeURIComponent(accountId)}?deleteRelated=${deleteRelatedData ? 'true' : 'false'}`, { method: 'DELETE' });
             localStorage.removeItem('pbl3_account_registry');
             const state = getWorkspaceState();
             state.managerBaseLoaded = false;
@@ -13156,6 +13382,51 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             alert(error?.message || 'Không thể xóa tài khoản. Vui lòng thử lại.');
         }
+    }
+
+    function closeAccountDeleteDialog() {
+        document.getElementById('account-delete-dialog')?.remove();
+    }
+
+    function openAccountDeleteDialog(accountId) {
+        const account = getManagedAccounts().find(item => String(item.id) === String(accountId));
+        if (!account) {
+            return;
+        }
+
+        closeAccountDeleteDialog();
+        const overlay = document.createElement('div');
+        overlay.id = 'account-delete-dialog';
+        overlay.className = 'overlay account-delete-dialog';
+        overlay.innerHTML = `
+            <div class="login-modal account-delete-modal" role="dialog" aria-modal="true" aria-labelledby="account-delete-title">
+                <button class="close-btn" type="button" data-account-delete-close>&times;</button>
+                <h2 id="account-delete-title">Xóa mềm tài khoản</h2>
+                <p class="customer-card-meta">Tài khoản: <strong>${escapeHtml(account.username || account.ho_ten || account.id)}</strong></p>
+                <p class="customer-card-meta">Chọn cách xử lý dữ liệu liên quan. Cả hai lựa chọn đều không xóa cứng khỏi database.</p>
+                <div class="account-delete-options">
+                    <button class="secondary-btn text-bold" type="button" data-account-delete-related="true">Xóa mềm cả thông tin khách hàng và đơn hàng</button>
+                    <button class="login-submit-btn text-bold" type="button" data-account-delete-related="false">Chỉ xóa mềm tài khoản, giữ thông tin khách hàng và đơn hàng</button>
+                </div>
+                <button class="cart-text-btn secondary" type="button" data-account-delete-close>Hủy</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', event => {
+            if (event.target === overlay || event.target.closest('[data-account-delete-close]')) {
+                closeAccountDeleteDialog();
+                return;
+            }
+
+            const actionButton = event.target.closest('[data-account-delete-related]');
+            if (!actionButton) {
+                return;
+            }
+
+            const deleteRelated = actionButton.dataset.accountDeleteRelated === 'true';
+            closeAccountDeleteDialog();
+            void deleteManagedAccount(accountId, deleteRelated);
+        });
     }
 
     function saveCategoryFromForm() {
@@ -13372,8 +13643,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     openAccountForm(account || null);
                     return;
                 }
-                if (accountButton.dataset.accountAction === 'delete' && confirm('Bạn có chắc muốn xóa tài khoản này không?')) {
-                    void deleteManagedAccount(accountId);
+                if (accountButton.dataset.accountAction === 'delete') {
+                    openAccountDeleteDialog(accountId);
                     return;
                 }
             }
@@ -13821,6 +14092,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getProductTypeOptions(product) {
+        if (isSignatureProduct(product)) {
+            return [];
+        }
+
         const sources = [
             product?.loai_hang,
             product?.phan_loai,
@@ -13839,23 +14114,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(Boolean)
             .filter(value => normalizeText(value) !== 'khong ro');
 
+        const imageVariantOptions = getProductImageVariantOptions(product);
+        if (imageVariantOptions.length > 1) {
+            values.push(...imageVariantOptions);
+        }
+
         return getUniqueValues(values);
     }
 
     function getProductGalleryImages(product) {
-        const explicitImages = String(product?.hinh_anh_url || '')
-            .split(/\r?\n|\|/)
-            .map(item => item.trim())
-            .filter(Boolean);
-        const posterImage = buildProductPoster(product);
-        const fallbackImage = getProductImageUrl(product);
-        const images = [...explicitImages, fallbackImage];
-
-        if (!images.includes(posterImage)) {
-            images.push(posterImage);
+        const explicitImages = parseProductImageUrls(product?.hinh_anh_url);
+        if (explicitImages.length) {
+            return Array.from(new Set(explicitImages)).slice(0, 6);
         }
 
-        return Array.from(new Set(images)).slice(0, 6);
+        return [buildProductPoster(product)];
     }
 
     function getCuratedProductDescription(product) {
@@ -14836,7 +15109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentDetailSelectedSize = sizeOptions[0] || 'Tieu chuan';
         currentDetailSelectedType = typeOptions[0] || '';
         currentDetailQuantity = 1;
-        currentDetailImageIndex = 0;
+        currentDetailImageIndex = findProductImageIndexForType(product, currentDetailSelectedType, 0);
         currentView = 'product-detail';
 
         userDropdown.classList.add('hidden');
@@ -17064,6 +17337,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         userListBody.innerHTML = accounts.map(account => {
+            const isDeletedAccount = normalizeText(account.status || '').includes('da xoa');
             return `
                 <tr>
                     <td>${escapeHtml(getDisplayAccountId(account))}</td>
@@ -17076,8 +17350,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><span class="workspace-chip">${escapeHtml(account.status || 'Hoạt động')}</span></td>
                     <td>
                         <div class="workspace-row-actions account-actions">
-                            <button class="cart-text-btn danger" type="button" data-account-action="delete" data-account-id="${escapeHtml(account.id)}">Xóa</button>
-                            <button class="secondary-btn text-bold" type="button" data-account-action="edit" data-account-id="${escapeHtml(account.id)}">Sửa</button>
+                            <button class="cart-text-btn danger" type="button" data-account-action="delete" data-account-id="${escapeHtml(account.id)}" ${isDeletedAccount ? 'disabled' : ''}>Xóa</button>
+                            <button class="secondary-btn text-bold" type="button" data-account-action="edit" data-account-id="${escapeHtml(account.id)}" ${isDeletedAccount ? 'disabled' : ''}>Sửa</button>
                         </div>
                     </td>
                 </tr>
@@ -18015,10 +18289,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getCurrentSampleOrderResetVersion() {
-        return '2026-04-23-sample-orders-v2';
+        return '2026-05-18-empty-customer-orders-v1';
     }
 
     function getSampleWorkspaceOrdersSeed() {
+        return [];
+
         return [
             {
                 id: 'sample-order-001',

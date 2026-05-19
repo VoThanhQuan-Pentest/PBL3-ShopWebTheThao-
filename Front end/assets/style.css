@@ -86,7 +86,7 @@ textarea {
     grid-template-areas:
         "logo search user_nav"
         "logo nav nav";
-    grid-template-columns: 190px minmax(0, 1fr) minmax(290px, 360px);
+    grid-template-columns: 190px minmax(320px, 1fr) minmax(500px, 640px);
     grid-template-rows: 74px 44px;
     height: var(--header-height);
     padding: 0 18px 0 0;
@@ -245,6 +245,34 @@ textarea {
     gap: 14px;
     min-width: 0;
     flex-wrap: nowrap;
+}
+
+.promo-hunt-header-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px rgba(220, 38, 38, 0.24);
+    transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.promo-hunt-header-btn i {
+    font-size: 17px;
+}
+
+.promo-hunt-header-btn:hover,
+.promo-hunt-header-btn.active {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+    box-shadow: 0 14px 28px rgba(220, 38, 38, 0.3);
 }
 
 #contact {
@@ -1021,21 +1049,26 @@ textarea {
 
 .home-sale-card-image {
     position: relative;
-    min-height: 220px;
-    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 230px;
+    padding: 16px 16px 42px;
     background: linear-gradient(180deg, #fff 0%, #f7f9fc 100%);
 }
 
 .home-sale-card-image img {
     width: 100%;
-    height: 192px;
+    height: 172px;
     object-fit: contain;
+    object-position: center;
 }
 
 .home-sale-badge {
     position: absolute;
-    left: 14px;
-    bottom: 14px;
+    left: 16px;
+    bottom: 16px;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     min-height: 28px;
@@ -4195,6 +4228,30 @@ textarea {
     max-width: 780px;
 }
 
+.account-delete-modal {
+    max-width: 560px;
+}
+
+.account-delete-modal h2 {
+    margin-bottom: 14px;
+}
+
+.account-delete-options {
+    display: grid;
+    gap: 12px;
+    margin: 22px 0 14px;
+}
+
+.account-delete-options button {
+    min-height: 52px;
+    white-space: normal;
+}
+
+.workspace-row-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
 .policy-modal {
     max-height: min(82vh, 760px);
     overflow-y: auto;
@@ -4315,6 +4372,14 @@ textarea {
     min-height: 108px;
     padding: 12px 14px;
     resize: vertical;
+}
+
+.form-help-text {
+    display: block;
+    margin-top: 8px;
+    color: #6b7890;
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .form-group input:focus,
@@ -4495,7 +4560,7 @@ textarea {
 
 @media (max-width: 1240px) {
     #header {
-        grid-template-columns: 180px minmax(0, 1fr) 320px;
+        grid-template-columns: 180px minmax(0, 1fr) minmax(320px, 390px);
     }
 
     #logo {
@@ -4504,6 +4569,10 @@ textarea {
 
     #contact {
         display: none;
+    }
+
+    .promo-hunt-header-btn {
+        padding: 7px 13px;
     }
 
 }
@@ -5015,6 +5084,7 @@ textarea {
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
     opacity: 0;
     pointer-events: none;
+    z-index: 1;
 }
 
 .product-card:hover .product-img::after,

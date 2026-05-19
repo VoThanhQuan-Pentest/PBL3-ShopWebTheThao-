@@ -17,11 +17,15 @@ CREATE TABLE IF NOT EXISTS tbl_luot_nhan_khuyen_mai (
     id VARCHAR(64) NOT NULL,
     campaign_id VARCHAR(64) NOT NULL,
     user_id VARCHAR(64) NOT NULL,
+    trang_thai VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE KEY uk_promo_hunt_claim_user (campaign_id, user_id),
     KEY idx_promo_hunt_claim_campaign (campaign_id),
     KEY idx_promo_hunt_claim_user (user_id),
+    KEY idx_promo_hunt_claim_status (trang_thai, is_deleted),
     CONSTRAINT fk_promo_hunt_claim_campaign
         FOREIGN KEY (campaign_id) REFERENCES tbl_san_khuyen_mai (id)
         ON UPDATE CASCADE

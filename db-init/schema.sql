@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS tbl_nguoi_dung (
     role VARCHAR(50) NOT NULL,
     ho_ten VARCHAR(150) NOT NULL,
     email VARCHAR(150) NULL,
+    trang_thai VARCHAR(30) NOT NULL DEFAULT 'Hoat dong',
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE KEY uk_tbl_nguoi_dung_username (username),
     KEY idx_tbl_nguoi_dung_role (role),
@@ -26,6 +28,7 @@ CREATE TABLE IF NOT EXISTS tbl_nguoi_dung (
 
 CREATE TABLE IF NOT EXISTS tbl_khach_hang (
     id VARCHAR(64) NOT NULL,
+    user_id VARCHAR(64) NULL,
     ten_khach VARCHAR(150) NOT NULL,
     sdt VARCHAR(30) NOT NULL,
     email VARCHAR(150) NULL,
@@ -33,7 +36,11 @@ CREATE TABLE IF NOT EXISTS tbl_khach_hang (
     nhan VARCHAR(100) NULL,
     dia_chi VARCHAR(500) NULL,
     ghi_chu VARCHAR(500) NULL,
+    tong_chi_tieu DECIMAL(15,2) NOT NULL DEFAULT 0,
+    hang_khach_hang VARCHAR(50) NULL,
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     KEY idx_tbl_khach_hang_email (email),
     KEY idx_tbl_khach_hang_ten_khach (ten_khach),
@@ -53,6 +60,7 @@ CREATE TABLE IF NOT EXISTS tbl_san_pham (
     ton_kho INT NOT NULL DEFAULT 0,
     trang_thai VARCHAR(50) NOT NULL,
     link_san_pham VARCHAR(500) NULL,
+    hinh_anh_url VARCHAR(1500) NULL,
     ghi_chu VARCHAR(500) NULL,
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
@@ -67,6 +75,9 @@ CREATE TABLE IF NOT EXISTS tbl_don_hang (
     ma_don VARCHAR(64) NOT NULL,
     ngay_dat DATE NOT NULL,
     customer_id VARCHAR(64) NOT NULL,
+    user_id VARCHAR(64) NULL,
+    nguoi_nhan VARCHAR(150) NULL,
+    so_dien_thoai_giao VARCHAR(30) NULL,
     trang_thai_don VARCHAR(50) NOT NULL,
     thanh_toan VARCHAR(50) NOT NULL,
     da_thanh_toan TINYINT(1) NOT NULL DEFAULT 0,
@@ -76,6 +87,8 @@ CREATE TABLE IF NOT EXISTS tbl_don_hang (
     dia_chi_giao VARCHAR(500) NOT NULL,
     ghi_chu VARCHAR(500) NULL,
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE KEY uk_tbl_don_hang_ma_don (ma_don),
     KEY idx_tbl_don_hang_customer_id (customer_id),
@@ -106,11 +119,15 @@ CREATE TABLE IF NOT EXISTS tbl_luot_nhan_khuyen_mai (
     id VARCHAR(64) NOT NULL,
     campaign_id VARCHAR(64) NOT NULL,
     user_id VARCHAR(64) NOT NULL,
+    trang_thai VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE KEY uk_promo_hunt_claim_user (campaign_id, user_id),
     KEY idx_promo_hunt_claim_campaign (campaign_id),
     KEY idx_promo_hunt_claim_user (user_id),
+    KEY idx_promo_hunt_claim_status (trang_thai, is_deleted),
     CONSTRAINT fk_promo_hunt_claim_campaign
         FOREIGN KEY (campaign_id) REFERENCES tbl_san_khuyen_mai (id)
         ON UPDATE CASCADE
@@ -198,3 +215,15 @@ ON DUPLICATE KEY UPDATE
     giam_gia = VALUES(giam_gia),
     dia_chi_giao = VALUES(dia_chi_giao),
     ghi_chu = VALUES(ghi_chu);
+
+-- Starter reset: keep audit data but do not count sample orders in revenue/bestseller stats.
+UPDATE tbl_don_hang
+SET is_deleted = 1,
+    ghi_chu = CONCAT(COALESCE(NULLIF(ghi_chu, ''), 'Reset demo'), ' | Soft reset revenue/bestseller data')
+WHERE id IN ('order-001', 'order-002')
+   OR customer_id IN ('customer-001', 'customer-002');
+
+UPDATE tbl_luot_nhan_khuyen_mai
+SET is_deleted = 1,
+    trang_thai = 'RESET',
+    ngay_cap_nhat = NOW();

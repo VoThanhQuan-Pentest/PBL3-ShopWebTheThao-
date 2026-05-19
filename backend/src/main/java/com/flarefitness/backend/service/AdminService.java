@@ -3,15 +3,21 @@ package com.flarefitness.backend.service;
 import com.flarefitness.backend.dto.admin.AdminUserRequest;
 import com.flarefitness.backend.dto.admin.AdminUserResponse;
 import com.flarefitness.backend.entity.Customer;
+import com.flarefitness.backend.entity.Order;
 import com.flarefitness.backend.entity.User;
 import com.flarefitness.backend.exception.BadRequestException;
 import com.flarefitness.backend.exception.ResourceNotFoundException;
 import com.flarefitness.backend.repository.CustomerRepository;
+import com.flarefitness.backend.repository.OrderRepository;
 import com.flarefitness.backend.repository.UserRepository;
 import com.flarefitness.backend.security.CurrentUserPrincipal;
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
@@ -27,24 +33,28 @@ public class AdminService {
     private static final String ROLE_CUSTOMER = "Khach hang";
     private static final String STATUS_ACTIVE = "Hoat dong";
     private static final String STATUS_DELETED = "Da xoa";
+    private static final String STATUS_DELETED_WITH_RELATED = "Da xoa kem du lieu";
 
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AdminService(
             UserRepository userRepository,
             CustomerRepository customerRepository,
+            OrderRepository orderRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional(readOnly = true)
     public java.util.List<AdminUserResponse> getAllUsers() {
-        return userRepository.findByDeletedFalseOrderByHoTenAsc()
+        return userRepository.findAllByOrderByHoTenAsc()
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -119,7 +129,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteUser(String id, Authentication authentication) {
+    public void deleteUser(String id, boolean deleteRelated, Authentication authentication) {
         User user = userRepository.findActiveById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay tai khoan."));
         if (user.getId().equals(currentAdmin(authentication).getId())) {
@@ -131,9 +141,12 @@ public class AdminService {
         if (user.getEmail() != null && !user.getEmail().isBlank()) {
             user.setEmail(truncate(user.getEmail() + deletedSuffix, 150));
         }
-        user.setStatus(STATUS_DELETED);
+        user.setStatus(deleteRelated ? STATUS_DELETED_WITH_RELATED : STATUS_DELETED);
         user.setDeleted(true);
         userRepository.save(user);
+        if (deleteRelated) {
+            softDeleteRelatedCustomerData(user);
+        }
     }
 
     private AdminUserResponse toResponse(User user) {
@@ -162,8 +175,8 @@ public class AdminService {
         if (!ROLE_CUSTOMER.equals(normalizeRole(user.getRole()))) {
             return;
         }
-        Customer customer = customerRepository.findFirstByUserId(user.getId())
-                .or(() -> user.getEmail() == null ? Optional.empty() : customerRepository.findFirstByEmailIgnoreCase(user.getEmail()))
+        Customer customer = customerRepository.findActiveFirstByUserId(user.getId())
+                .or(() -> user.getEmail() == null ? Optional.empty() : customerRepository.findActiveFirstByEmailIgnoreCase(user.getEmail()))
                 .orElseGet(() -> {
                     Customer nextCustomer = new Customer();
                     nextCustomer.setId("customer-" + UUID.randomUUID());
@@ -176,7 +189,40 @@ public class AdminService {
         customer.setSdt(trimToNull(phoneNumber) == null ? defaultPhone(customer.getSdt()) : phoneNumber.trim());
         customer.setKenh(customer.getKenh() == null || customer.getKenh().isBlank() ? "Website" : customer.getKenh());
         customer.setNhan(customer.getNhan() == null || customer.getNhan().isBlank() ? "Moi" : customer.getNhan());
+        customer.setTongChiTieu(customer.getTongChiTieu() == null ? BigDecimal.ZERO : customer.getTongChiTieu());
+        customer.setUpdatedAt(LocalDateTime.now());
+        customer.setDeleted(false);
         customerRepository.save(customer);
+    }
+
+    private void softDeleteRelatedCustomerData(User user) {
+        Optional<Customer> customer = customerRepository.findFirstByUserId(user.getId());
+        String customerId = customer.map(Customer::getId).orElse(null);
+        LocalDateTime now = LocalDateTime.now();
+
+        customer.ifPresent(record -> {
+            record.setDeleted(true);
+            record.setTongChiTieu(BigDecimal.ZERO);
+            record.setUpdatedAt(now);
+            record.setGhiChu(appendAuditNote(record.getGhiChu(), "Soft-deleted with account " + user.getId()));
+            customerRepository.save(record);
+        });
+
+        List<Order> orders = orderRepository.findForSoftDelete(user.getId(), customerId);
+        Map<String, Order> uniqueOrders = new LinkedHashMap<>();
+        orders.forEach(order -> uniqueOrders.put(order.getId(), order));
+        uniqueOrders.values().forEach(order -> {
+            order.setDeleted(true);
+            order.setUpdatedAt(now);
+            order.setGhiChu(appendAuditNote(order.getGhiChu(), "Soft-deleted with account " + user.getId()));
+        });
+        orderRepository.saveAll(uniqueOrders.values());
+    }
+
+    private String appendAuditNote(String current, String note) {
+        String base = trimToNull(current);
+        String next = base == null ? note : base + " | " + note;
+        return truncate(next, 500);
     }
 
     private User currentAdmin(Authentication authentication) {

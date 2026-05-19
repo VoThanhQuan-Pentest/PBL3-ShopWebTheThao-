@@ -47,7 +47,7 @@ public class Product extends BaseEntity {
     @Column(name = "link_san_pham", length = 500)
     private String linkSanPham;
 
-    @Column(name = "hinh_anh_url", length = 500)
+    @Column(name = "hinh_anh_url", length = 1500)
     private String hinhAnhUrl;
 
     @Column(name = "ghi_chu", length = 500)

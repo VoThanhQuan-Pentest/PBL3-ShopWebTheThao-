@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS tbl_san_pham (
     ton_kho INT NOT NULL DEFAULT 0,
     trang_thai VARCHAR(50) NOT NULL,
     link_san_pham VARCHAR(500) NULL,
-    hinh_anh_url VARCHAR(500) NULL,
+    hinh_anh_url VARCHAR(1500) NULL,
     mo_ta_ngan TEXT NULL,
     ghi_chu VARCHAR(500) NULL,
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS tbl_bien_the_san_pham (
     ton_kho_hien_tai INT NOT NULL DEFAULT 0,
     gia_nhap DECIMAL(15,2) NOT NULL,
     gia_ban DECIMAL(15,2) NOT NULL,
-    hinh_anh_url VARCHAR(500) NULL,
+    hinh_anh_url VARCHAR(1500) NULL,
     trang_thai VARCHAR(50) NOT NULL DEFAULT 'Đang bán',
     ghi_chu VARCHAR(500) NULL,
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -291,11 +291,15 @@ CREATE TABLE IF NOT EXISTS tbl_luot_nhan_khuyen_mai (
     id VARCHAR(64) NOT NULL,
     campaign_id VARCHAR(64) NOT NULL,
     user_id VARCHAR(64) NOT NULL,
+    trang_thai VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
     ngay_tao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ngay_cap_nhat DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     UNIQUE KEY uk_promo_hunt_claim_user (campaign_id, user_id),
     KEY idx_promo_hunt_claim_campaign (campaign_id),
     KEY idx_promo_hunt_claim_user (user_id),
+    KEY idx_promo_hunt_claim_status (trang_thai, is_deleted),
     CONSTRAINT fk_promo_hunt_claim_campaign
         FOREIGN KEY (campaign_id) REFERENCES tbl_san_khuyen_mai (id)
         ON UPDATE CASCADE
@@ -415,8 +419,7 @@ INSERT INTO tbl_khach_hang (
 )
 VALUES
     ('customer-001', 'user-customer-001', 'Nguyễn Văn A', '0901234567', 'nguyenvana@email.com', 'Website', 'VIP', '123 Đường Lê Lợi, Quận 1, TP.HCM', 'Khách hàng thân thiết', 1590000, 'Vàng', '2026-04-18 08:15:00', '2026-04-18 08:15:00', 0),
-    ('customer-002', 'user-customer-002', 'Trần Thị B', '0987654321', 'tranthib@email.com', 'Facebook', 'Mới', '456 Đường Nguyễn Huệ, Quận 2, TP.HCM', '', 570000, 'Bạc', '2026-04-18 08:20:00', '2026-04-18 08:20:00', 0),
-    ('customer-003', NULL, 'Lê Văn C', '0911222333', 'levanc@email.com', 'Shopee', 'Quay lại', '789 Đường Trần Phú, Quận 3, TP.HCM', 'Khách mua không tạo tài khoản', 0, 'Thường', '2026-04-18 08:25:00', '2026-04-18 08:25:00', 0)
+    ('customer-002', 'user-customer-002', 'Trần Thị B', '0987654321', 'tranthib@email.com', 'Facebook', 'Mới', '456 Đường Nguyễn Huệ, Quận 2, TP.HCM', '', 570000, 'Bạc', '2026-04-18 08:20:00', '2026-04-18 08:20:00', 0)
 ON DUPLICATE KEY UPDATE
     user_id = VALUES(user_id),
     ten_khach = VALUES(ten_khach),
@@ -745,8 +748,7 @@ INSERT INTO tbl_don_hang (
 )
 VALUES
     ('order-001', 'DH-20260418-0001', '2026-04-18', 'customer-001', 'user-customer-001', 'Nguyễn Văn A', '0901234567', 'Hoàn tất', 'Chuyển khoản', 1, 1590000, 30000, 50000, '123 Đường Lê Lợi, Quận 1, TP.HCM', 'Giao giờ hành chính', '2026-04-18 09:00:00', '2026-04-18 09:00:00', 0),
-    ('order-002', 'DH-20260418-0002', '2026-04-18', 'customer-002', 'user-customer-002', 'Trần Thị B', '0987654321', 'Đang giao', 'COD', 0, 570000, 20000, 0, '456 Đường Nguyễn Huệ, Quận 2, TP.HCM', 'Gọi trước khi giao', '2026-04-18 09:10:00', '2026-04-18 09:10:00', 0),
-    ('order-003', 'DH-20260418-0003', '2026-04-18', 'customer-003', NULL, 'Lê Văn C', '0911222333', 'Chờ xác nhận', 'Ví điện tử', 0, 650000, 25000, 25000, '789 Đường Trần Phú, Quận 3, TP.HCM', 'Đơn hàng khách lẻ', '2026-04-18 09:20:00', '2026-04-18 09:20:00', 0)
+    ('order-002', 'DH-20260418-0002', '2026-04-18', 'customer-002', 'user-customer-002', 'Trần Thị B', '0987654321', 'Đang giao', 'COD', 0, 570000, 20000, 0, '456 Đường Nguyễn Huệ, Quận 2, TP.HCM', 'Gọi trước khi giao', '2026-04-18 09:10:00', '2026-04-18 09:10:00', 0)
 ON DUPLICATE KEY UPDATE
     customer_id = VALUES(customer_id),
     user_id = VALUES(user_id),
@@ -769,8 +771,7 @@ INSERT INTO tbl_chi_tiet_don_hang (
 VALUES
     ('order-item-001', 'order-001', 'product-001', 'variant-001', 'Giày bóng đá cỏ nhân tạo Nike', 'FB-001-42-XANH', '42', 'Xanh', 1, 1250000, 1250000, '2026-04-18 09:00:00'),
     ('order-item-002', 'order-001', 'product-005', 'variant-007', 'Bóng chuyền hơi Động Lực', 'VB-001-TIEUCHUAN-VANGXANH', 'Tiêu chuẩn', 'Vàng xanh', 3, 120000, 360000, '2026-04-18 09:00:00'),
-    ('order-item-003', 'order-002', 'product-002', 'variant-004', 'Áo đấu CLB Manchester City 2024', 'FB-003-L-XANHDUONG', 'L', 'Xanh dương', 1, 550000, 550000, '2026-04-18 09:10:00'),
-    ('order-item-004', 'order-003', 'product-003', 'variant-005', 'Bóng rổ Spalding NBA', 'BB-002-SO7-CAM', 'Số 7', 'Cam', 1, 650000, 650000, '2026-04-18 09:20:00')
+    ('order-item-003', 'order-002', 'product-002', 'variant-004', 'Áo đấu CLB Manchester City 2024', 'FB-003-L-XANHDUONG', 'L', 'Xanh dương', 1, 550000, 550000, '2026-04-18 09:10:00')
 ON DUPLICATE KEY UPDATE
     so_luong = VALUES(so_luong),
     don_gia = VALUES(don_gia),
@@ -782,8 +783,7 @@ INSERT INTO tbl_thanh_toan (
 )
 VALUES
     ('payment-001', 'order-001', 'TXN-DH-20260418-0001', 'Chuyển khoản', 1590000, 'Thành công', 'Vietcombank', JSON_OBJECT('status', 'success', 'bank', 'VCB'), '2026-04-18 09:02:00', 'Thanh toán đã đối soát', '2026-04-18 09:02:00', '2026-04-18 09:02:00'),
-    ('payment-002', 'order-002', 'COD-DH-20260418-0002', 'COD', 570000, 'Chờ thu hộ', 'Nội bộ', JSON_OBJECT('status', 'pending', 'provider', 'COD'), NULL, 'Thu tiền khi giao hàng', '2026-04-18 09:11:00', '2026-04-18 09:11:00'),
-    ('payment-003', 'order-003', 'MOMO-DH-20260418-0003', 'Ví điện tử', 650000, 'Khởi tạo', 'MoMo', JSON_OBJECT('status', 'created', 'provider', 'MoMo'), NULL, 'Chờ khách xác nhận thanh toán', '2026-04-18 09:21:00', '2026-04-18 09:21:00')
+    ('payment-002', 'order-002', 'COD-DH-20260418-0002', 'COD', 570000, 'Chờ thu hộ', 'Nội bộ', JSON_OBJECT('status', 'pending', 'provider', 'COD'), NULL, 'Thu tiền khi giao hàng', '2026-04-18 09:11:00', '2026-04-18 09:11:00')
 ON DUPLICATE KEY UPDATE
     so_tien = VALUES(so_tien),
     trang_thai = VALUES(trang_thai),
@@ -825,4 +825,29 @@ ON DUPLICATE KEY UPDATE
     ghi_chu = VALUES(ghi_chu),
     ngay_cap_nhat = VALUES(ngay_cap_nhat),
     is_deleted = VALUES(is_deleted);
+
+-- Starter reset: keep audit data but start with no counted orders, spending or voucher usage.
+UPDATE tbl_don_hang
+SET is_deleted = 1,
+    ngay_cap_nhat = NOW(),
+    ghi_chu = CONCAT(COALESCE(NULLIF(ghi_chu, ''), 'Reset demo'), ' | Soft reset revenue/bestseller data')
+WHERE id IN ('order-001', 'order-002')
+   OR user_id IN ('user-customer-001', 'user-customer-002');
+
+UPDATE tbl_thanh_toan
+SET trang_thai = 'Khong ghi nhan',
+    ngay_cap_nhat = NOW(),
+    ghi_chu = CONCAT(COALESCE(NULLIF(ghi_chu, ''), 'Reset demo'), ' | Soft reset revenue data')
+WHERE order_id IN ('order-001', 'order-002');
+
+UPDATE tbl_khach_hang
+SET tong_chi_tieu = 0,
+    ngay_cap_nhat = NOW()
+WHERE user_id IN ('user-customer-001', 'user-customer-002')
+   OR id IN ('customer-001', 'customer-002');
+
+UPDATE tbl_luot_nhan_khuyen_mai
+SET is_deleted = 1,
+    trang_thai = 'RESET',
+    ngay_cap_nhat = NOW();
 

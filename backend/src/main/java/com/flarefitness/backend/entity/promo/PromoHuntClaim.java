@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tbl_luot_nhan_khuyen_mai")
@@ -19,6 +20,15 @@ public class PromoHuntClaim extends BaseEntity {
 
     @Column(name = "user_id", nullable = false, length = 64)
     private String userId;
+
+    @Column(name = "trang_thai", nullable = false, length = 50)
+    private String status = "ACTIVE";
+
+    @Column(name = "ngay_cap_nhat")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean deleted = false;
 
     public String getId() {
         return id;
@@ -42,5 +52,29 @@ public class PromoHuntClaim extends BaseEntity {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

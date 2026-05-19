@@ -28,6 +28,7 @@ public class PromoHuntService {
 
     private static final String STATUS_ACTIVE_CODE = "ACTIVE";
     private static final String STATUS_DISABLED_CODE = "DISABLED";
+    private static final String STATUS_DELETED_CODE = "DELETED";
     private static final String STATUS_ACTIVE_LABEL = "Ho\u1ea1t \u0111\u1ed9ng";
     private static final String STATUS_DISABLED_LABEL = "T\u1ea1m kh\u00f3a";
     private static final Set<String> ALLOWED_STATUS_CODES = Set.of(STATUS_ACTIVE_CODE, STATUS_DISABLED_CODE);
@@ -82,7 +83,9 @@ public class PromoHuntService {
     public void deleteCampaign(String campaignId) {
         PromoHuntCampaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResourceNotFoundException("Khong tim thay chien dich san khuyen mai."));
-        campaignRepository.delete(campaign);
+        campaign.setStatus(STATUS_DELETED_CODE);
+        campaign.setUpdatedAt(LocalDateTime.now());
+        campaignRepository.save(campaign);
     }
 
     @Transactional
@@ -114,7 +117,10 @@ public class PromoHuntService {
         claim.setId("claim-" + UUID.randomUUID());
         claim.setCampaignId(campaign.getId());
         claim.setUserId(user.getId());
+        claim.setStatus(STATUS_ACTIVE_CODE);
+        claim.setDeleted(false);
         claim.setCreatedAt(now);
+        claim.setUpdatedAt(now);
         claimRepository.save(claim);
 
         campaign.setUpdatedAt(now);

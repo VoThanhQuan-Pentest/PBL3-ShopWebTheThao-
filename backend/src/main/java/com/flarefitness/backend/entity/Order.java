@@ -57,6 +57,12 @@ public class Order extends BaseEntity {
     @Column(name = "ghi_chu", length = 500)
     private String ghiChu;
 
+    @Column(name = "ngay_cap_nhat")
+    private java.time.LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean deleted = false;
+
     public String getId() {
         return id;
     }
@@ -175,5 +181,21 @@ public class Order extends BaseEntity {
 
     public void setGhiChu(String ghiChu) {
         this.ghiChu = ghiChu;
+    }
+
+    public java.time.LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(java.time.LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

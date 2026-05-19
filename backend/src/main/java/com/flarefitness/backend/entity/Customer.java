@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tbl_khach_hang")
@@ -36,6 +37,15 @@ public class Customer extends BaseEntity {
 
     @Column(name = "ghi_chu", length = 500)
     private String ghiChu;
+
+    @Column(name = "tong_chi_tieu", precision = 15, scale = 2)
+    private java.math.BigDecimal tongChiTieu;
+
+    @Column(name = "ngay_cap_nhat")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean deleted = false;
 
     public String getId() {
         return id;
@@ -107,5 +117,29 @@ public class Customer extends BaseEntity {
 
     public void setGhiChu(String ghiChu) {
         this.ghiChu = ghiChu;
+    }
+
+    public java.math.BigDecimal getTongChiTieu() {
+        return tongChiTieu;
+    }
+
+    public void setTongChiTieu(java.math.BigDecimal tongChiTieu) {
+        this.tongChiTieu = tongChiTieu;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

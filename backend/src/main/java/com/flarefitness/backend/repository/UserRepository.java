@@ -11,6 +11,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     List<User> findByDeletedFalseOrderByHoTenAsc();
 
+    List<User> findAllByOrderByHoTenAsc();
+
     @Query("select u from User u where lower(u.username) = lower(:username) and u.deleted = false")
     Optional<User> findByUsernameIgnoreCase(@Param("username") String username);
 

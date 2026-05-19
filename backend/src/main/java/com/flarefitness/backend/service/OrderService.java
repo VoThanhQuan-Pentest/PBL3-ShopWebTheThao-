@@ -138,6 +138,8 @@ public class OrderService {
                 "voucherLabel", safeString(request.voucherLabel())
         )));
         order.setCreatedAt(createdAt);
+        order.setUpdatedAt(createdAt);
+        order.setDeleted(false);
         orderRepository.save(order);
 
         saveOrderItems(order, request.items(), createdAt);
@@ -174,6 +176,7 @@ public class OrderService {
         }
 
         order.setGhiChu(serializeMetadata(metadata));
+        order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
         return toResponse(order);
     }
@@ -330,22 +333,24 @@ public class OrderService {
         if (customer.getCreatedAt() == null) {
             customer.setCreatedAt(LocalDateTime.now());
         }
+        customer.setUpdatedAt(LocalDateTime.now());
+        customer.setDeleted(false);
         return customerRepository.save(customer);
     }
 
     private java.util.Optional<Customer> findCustomerForUser(User user) {
-        var byUserId = customerRepository.findFirstByUserId(user.getId());
+        var byUserId = customerRepository.findActiveFirstByUserId(user.getId());
         if (byUserId.isPresent()) {
             return byUserId;
         }
         if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            var byEmail = customerRepository.findFirstByEmailIgnoreCase(user.getEmail());
+            var byEmail = customerRepository.findActiveFirstByEmailIgnoreCase(user.getEmail());
             if (byEmail.isPresent()) {
                 return byEmail;
             }
         }
         if (user.getHoTen() != null && !user.getHoTen().isBlank()) {
-            return customerRepository.findFirstByTenKhachIgnoreCase(user.getHoTen());
+            return customerRepository.findActiveFirstByTenKhachIgnoreCase(user.getHoTen());
         }
         return java.util.Optional.empty();
     }
